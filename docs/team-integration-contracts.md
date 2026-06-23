@@ -13,7 +13,7 @@ feature/HamzaElhaddaji-quality-docs
 feature/Mouhcine005-ml-modeling
 feature/HajarEnnajdy-api-demo
 feature/ilyass-analytics-eda
-feature/akram-agile-release
+feature/Adonis-I-agile-release
 ```
 
 ## Folder Ownership
@@ -26,7 +26,7 @@ feature/akram-agile-release
 | Mouhcine005 | `src/industrial_health/modeling/`, `notebooks/modeling/`, `reports/model_metrics/` |
 | HajarEnnajdy | `src/industrial_health/api/schemas.py`, `demo/`, `docs/api.md` |
 | ilyass | `notebooks/eda/`, `reports/figures/`, `docs/business-analysis.md` |
-| akram | `agile/`, `docs/final-report/`, `presentation/` |
+| Adonis-I | `agile/`, `docs/final-report/`, `presentation/` |
 
 ## Shared Contracts
 
@@ -108,4 +108,3 @@ Every pull request must include:
 - Any contract changed.
 
 If a contract changes, tag Ossama before merge.
-

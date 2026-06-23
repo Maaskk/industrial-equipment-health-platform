@@ -1,8 +1,8 @@
 # Akram - Agile, Release, and Final Presentation
 
-GitHub: pending
+GitHub: `Adonis-I`
 
-Branch: `feature/akram-agile-release`
+Branch: `feature/Adonis-I-agile-release`
 
 ## Mission
 
@@ -37,4 +37,3 @@ Keep the project organized and make the final delivery look professional.
 3. Plan the 3 sprint timeline.
 4. Track progress and blockers.
 5. Coordinate final report sections.
-
