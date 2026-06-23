@@ -19,18 +19,17 @@
 ## Collaborators to Invite Later
 
 - Ilyass: GitHub username pending
-- Akram: `Adonis-I`
 
 ## Branches to Create
 
 ```text
-owner/Maaskk-mlops-integration
-feature/mohamed-kar1-dataops-infra
-feature/HamzaElhaddaji-quality-docs
-feature/Mouhcine005-ml-modeling
-feature/HajarEnnajdy-api-demo
-feature/ilyass-analytics-eda
-feature/Adonis-I-agile-release
+owner/Maaskk
+feature/mohamed-kar1
+feature/HamzaElhaddaji
+feature/Mouhcine005
+feature/HajarEnnajdy
+feature/ilyass
+feature/Adonis-I
 ```
 
 ## Pull Request Rules

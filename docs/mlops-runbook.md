@@ -2,7 +2,7 @@
 
 Owner: `Maaskk`
 
-Branch: `owner/Maaskk-mlops-integration`
+Branch: `owner/Maaskk`
 
 ## Local API
 
@@ -85,4 +85,3 @@ The report is written to:
 ```text
 reports/readiness/maaskk-readiness.json
 ```
-

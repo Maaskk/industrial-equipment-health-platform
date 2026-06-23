@@ -52,13 +52,13 @@ Each member works in their own branch and opens pull requests into `main`.
 
 | Member | GitHub | Branch | Main ownership |
 |---|---|---|---|
-| Ossama | `Maaskk` | `owner/Maaskk-mlops-integration` | Hardest role: MLOps integration, MLflow, serving, Docker, CI/CD, monitoring |
-| Mohamed | `mohamed-kar1` | `feature/mohamed-kar1-dataops-infra` | dlt, DuckDB, Dagster, pipeline automation |
-| Hamza | `HamzaElhaddaji` | `feature/HamzaElhaddaji-quality-docs` | data contracts, tests, data lineage, documentation QA |
-| Mouhcine | `Mouhcine005` | `feature/Mouhcine005-ml-modeling` | model training, evaluation, feature engineering |
-| Hajar | `HajarEnnajdy` | `feature/HajarEnnajdy-api-demo` | API schemas, demo client, user-facing demo flow |
-| Ilyass | pending | `feature/ilyass-analytics-eda` | EDA, business analysis, KPIs, visual evidence |
-| Akram | `Adonis-I` | `feature/Adonis-I-agile-release` | Agile artifacts, sprint reports, final release and presentation |
+| Ossama | `Maaskk` | `owner/Maaskk` | Hardest role: MLOps integration, MLflow, serving, Docker, CI/CD, monitoring |
+| Mohamed | `mohamed-kar1` | `feature/mohamed-kar1` | dlt, DuckDB, Dagster, pipeline automation |
+| Hamza | `HamzaElhaddaji` | `feature/HamzaElhaddaji` | data contracts, tests, data lineage, documentation QA |
+| Mouhcine | `Mouhcine005` | `feature/Mouhcine005` | model training, evaluation, feature engineering |
+| Hajar | `HajarEnnajdy` | `feature/HajarEnnajdy` | API schemas, demo client, user-facing demo flow |
+| Ilyass | pending | `feature/ilyass` | EDA, business analysis, KPIs, visual evidence |
+| Akram | `Adonis-I` | `feature/Adonis-I` | Agile artifacts, sprint reports, final release and presentation |
 
 Detailed task files are in [`team/`](team/).
 
@@ -77,7 +77,7 @@ Detailed task files are in [`team/`](team/).
   - `GET /health`
   - `POST /predict`
 - Docker containerization.
-- GitHub Actions CI/CD. The template is stored in [`docs/ci/github-actions-template.yml`](docs/ci/github-actions-template.yml) because the current publishing credential cannot push active workflow files without GitHub's `workflow` scope.
+- GitHub Actions CI/CD. The active workflow is stored in [`.github/workflows/ci.yml`](.github/workflows/ci.yml), with a reference template in [`docs/ci/github-actions-template.yml`](docs/ci/github-actions-template.yml).
 - Monitoring for service health, latency, ML metrics, and drift.
 - Final report, demo, and presentation.
 

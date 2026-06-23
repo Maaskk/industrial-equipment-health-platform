@@ -2,7 +2,7 @@
 
 GitHub: `Maaskk`
 
-Branch: `owner/Maaskk-mlops-integration`
+Branch: `owner/Maaskk`
 
 Difficulty: **hardest role**
 

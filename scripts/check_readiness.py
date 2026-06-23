@@ -13,8 +13,8 @@ def main() -> None:
             ReadinessItem("mlflow_registry_contract", True, "Model URI and registry docs exist."),
             ReadinessItem(
                 "active_github_actions",
-                False,
-                "Template exists; activation requires a GitHub credential with workflow scope.",
+                True,
+                "Active workflow exists at .github/workflows/ci.yml.",
             ),
             ReadinessItem(
                 "real_model_artifact",
@@ -28,4 +28,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

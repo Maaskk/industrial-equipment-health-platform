@@ -2,7 +2,7 @@
 
 GitHub: pending
 
-Branch: `feature/ilyass-analytics-eda`
+Branch: `feature/ilyass`
 
 ## Mission
 
@@ -38,4 +38,3 @@ Turn the dataset and model results into understandable business evidence.
 3. Create lifecycle and failure-risk charts.
 4. Write business interpretation notes.
 5. Provide demo scenarios to Ossama and Hajar.
-

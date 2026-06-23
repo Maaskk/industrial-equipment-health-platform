@@ -2,7 +2,7 @@
 
 GitHub: `Adonis-I`
 
-Branch: `feature/Adonis-I-agile-release`
+Branch: `feature/Adonis-I`
 
 ## Mission
 
