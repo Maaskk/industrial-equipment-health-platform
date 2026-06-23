@@ -18,14 +18,14 @@ You own the integration layer: MLflow, model registry, FastAPI deployment archit
 
 ## Main Deliverables
 
-- MLflow tracking server setup and experiment conventions.
+- MLflow tracking server setup and experiment conventions. See `docs/mlflow-model-registry.md`.
 - Model registry workflow: register, stage, load, and serve a model version.
 - FastAPI integration structure with Hajar:
   - `GET /health`
   - `POST /predict`
 - Docker and Docker Compose architecture.
-- GitHub Actions CI/CD workflow.
-- End-to-end integration script or demo command.
+- GitHub Actions CI/CD template.
+- End-to-end integration script or demo command. See `docs/demo-checklist.md`.
 - Monitoring design for:
   - service availability
   - response time
