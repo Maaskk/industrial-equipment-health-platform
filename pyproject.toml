@@ -1,0 +1,14 @@
+[project]
+name = "industrial-equipment-health-platform"
+version = "0.1.0"
+description = "Predictive maintenance MLOps and DataOps project."
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
