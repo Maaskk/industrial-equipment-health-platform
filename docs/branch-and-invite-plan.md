@@ -12,13 +12,14 @@
 - `HamzaElhaddaji`
 - `Mouhcine005`
 - `HajarEnnajdy`
+- `Adonis-I`
 
 `Maaskk` is the repository owner, so no invite is required for Ossama.
 
 ## Collaborators to Invite Later
 
 - Ilyass: GitHub username pending
-- Akram: GitHub username pending
+- Akram: `Adonis-I`
 
 ## Branches to Create
 
@@ -29,7 +30,7 @@ feature/HamzaElhaddaji-quality-docs
 feature/Mouhcine005-ml-modeling
 feature/HajarEnnajdy-api-demo
 feature/ilyass-analytics-eda
-feature/akram-agile-release
+feature/Adonis-I-agile-release
 ```
 
 ## Pull Request Rules

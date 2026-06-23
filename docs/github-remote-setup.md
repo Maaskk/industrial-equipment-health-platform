@@ -36,13 +36,14 @@ mohamed-kar1
 HamzaElhaddaji
 Mouhcine005
 HajarEnnajdy
+Adonis-I
 ```
 
 Pending usernames:
 
 ```text
 ilyass
-akram
+akram: Adonis-I
 ```
 
 ## Branches
@@ -54,5 +55,5 @@ feature/HamzaElhaddaji-quality-docs
 feature/Mouhcine005-ml-modeling
 feature/HajarEnnajdy-api-demo
 feature/ilyass-analytics-eda
-feature/akram-agile-release
+feature/Adonis-I-agile-release
 ```
