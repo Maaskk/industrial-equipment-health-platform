@@ -27,6 +27,12 @@ Owner: `Maaskk`
 
 ## Commands
 
+Create a temporary demo model artifact:
+
+```bash
+PYTHONPATH=src python scripts/register_demo_model.py
+```
+
 ```bash
 docker compose up --build
 ```
@@ -39,5 +45,17 @@ curl http://localhost:8000/health
 curl -X POST http://localhost:8000/predict \
   -H "Content-Type: application/json" \
   -d '{"engine_id":"engine_001","cycle":120,"features":{"sensor_1":518.67}}'
+```
+
+Run the smoke script:
+
+```bash
+PYTHONPATH=src python scripts/smoke_predict.py
+```
+
+Generate readiness evidence:
+
+```bash
+PYTHONPATH=src python scripts/check_readiness.py
 ```
 

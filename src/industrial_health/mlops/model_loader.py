@@ -37,6 +37,8 @@ def load_model(local_model_path: Path | None = None) -> RULModel:
 
     if local_model_path and local_model_path.exists():
         with local_model_path.open("rb") as file:
-            return PickleRULModel(pickle.load(file))
+            model = pickle.load(file)
+        if hasattr(model, "predict_one"):
+            return model
+        return PickleRULModel(model)
     return FallbackRULModel()
-

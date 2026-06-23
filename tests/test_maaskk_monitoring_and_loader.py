@@ -1,6 +1,7 @@
 import tempfile
 import unittest
 from pathlib import Path
+import pickle
 
 from industrial_health.mlops.drift import NumericDriftReport, compute_numeric_drift
 from industrial_health.mlops.model_loader import FallbackRULModel, load_model
@@ -39,7 +40,17 @@ class MaaskkMonitoringAndLoaderTests(unittest.TestCase):
             self.assertIsInstance(model, FallbackRULModel)
             self.assertEqual(model.predict_one({"cycle": 120.0}), 10.0)
 
+    def test_load_model_returns_existing_predict_one_model_without_wrapping(self):
+        with tempfile.TemporaryDirectory() as directory:
+            model_path = Path(directory) / "model.pkl"
+            with model_path.open("wb") as file:
+                pickle.dump(FallbackRULModel(), file)
+
+            model = load_model(local_model_path=model_path)
+
+            self.assertIsInstance(model, FallbackRULModel)
+            self.assertEqual(model.predict_one({"cycle": 120.0}), 10.0)
+
 
 if __name__ == "__main__":
     unittest.main()
-

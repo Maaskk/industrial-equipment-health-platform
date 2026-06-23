@@ -26,6 +26,12 @@ curl -X POST http://localhost:8000/predict \
 
 ## Docker
 
+Create a temporary demo model artifact:
+
+```bash
+PYTHONPATH=src python scripts/register_demo_model.py
+```
+
 ```bash
 docker compose up --build
 ```
@@ -67,4 +73,16 @@ Each line contains:
 - `latency_ms`
 
 This is intentionally simple for the course demo. It can later be replaced with Prometheus, Grafana, Evidently, or another observability stack.
+
+## Readiness Report
+
+```bash
+PYTHONPATH=src python scripts/check_readiness.py
+```
+
+The report is written to:
+
+```text
+reports/readiness/maaskk-readiness.json
+```
 
