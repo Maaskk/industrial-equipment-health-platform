@@ -92,6 +92,7 @@ def setup_warehouse():
         SELECT * FROM features
     """)
 
+
     # Stats finales
     r1 = con.execute("SELECT COUNT(*) FROM staging.stg_sensor_readings").fetchone()[0]
     r2 = con.execute("SELECT COUNT(*) FROM staging.stg_rul_labels").fetchone()[0]
