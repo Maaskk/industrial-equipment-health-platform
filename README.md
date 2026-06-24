@@ -58,7 +58,7 @@ Each member works in their own branch and opens pull requests into `main`.
 | Mouhcine | `Mouhcine005` | `feature/Mouhcine005-ml-modeling` | model training, evaluation, feature engineering |
 | Hajar | `HajarEnnajdy` | `feature/HajarEnnajdy-api-demo` | API schemas, demo client, user-facing demo flow |
 | Ilyass | pending | `feature/ilyass-analytics-eda` | EDA, business analysis, KPIs, visual evidence |
-| Akram | pending | `feature/akram-agile-release` | Agile artifacts, sprint reports, final release and presentation |
+| Akram | `Adonis-I` | `feature/Adonis-I-agile-release` | Agile artifacts, sprint reports, final release and presentation |
 
 Detailed task files are in [`team/`](team/).
 
