@@ -8,7 +8,8 @@ __pycache__/
 venv/
 
 # Data and model artifacts
-data/raw/
+data/raw/*
+ml-modeling/data/
 data/interim/
 data/processed/
 models/
