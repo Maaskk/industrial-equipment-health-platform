@@ -1,0 +1,14 @@
+dlt
+duckdb
+dbt-duckdb
+dagster
+dagster-webserver
+scikit-learn
+pandas
+numpy
+mlflow
+fastapi
+uvicorn
+pytest
+ruff
+
