@@ -1,0 +1,7 @@
+cmapss_dbt:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('DBT_DUCKDB_PATH', '../cmapss_ingestion.duckdb') }}"
+      threads: 1

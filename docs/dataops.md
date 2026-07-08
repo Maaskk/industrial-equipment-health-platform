@@ -7,6 +7,7 @@ Branch: `feature/mohamed-kar1-dataops-infra`
 This module implements the full DataOps foundation for the industrial equipment health platform:
 - **dlt** — raw data ingestion from NASA C-MAPSS files into DuckDB
 - **DuckDB** — local analytical warehouse (raw → staging → marts)
+- **dbt** — transformations and data quality tests (staging + marts models)
 - **Dagster** — pipeline orchestration with assets, jobs, and daily schedule
 
 ---
@@ -17,8 +18,11 @@ This module implements the full DataOps foundation for the industrial equipment 
 |------|---------|------|
 | dlt | 1.28+ | Ingestion |
 | DuckDB | 1.5+ | Local warehouse |
+| dbt-core / dbt-duckdb | 1.11+ / 1.10+ | Transformations & data quality |
 | Dagster | 1.13+ | Orchestration |
-| Python | 3.11+ | Runtime |
+| Python | 3.11 | Runtime |
+
+All four tools run in a **single Python virtual environment** (`venv/`), built from `requirements.txt` plus `dbt-core` / `dbt-duckdb`.
 
 ---
 
@@ -30,11 +34,23 @@ industrial-equipment-health-platform/
 │   └── ingestion/
 │       ├── __init__.py
 │       └── dlt_pipeline.py
+├── dbt_project/
+│   ├── dbt_project.yml
+│   ├── profiles.yml
+│   ├── macros/
+│   │   └── generate_schema_name.sql
+│   └── models/
+│       ├── schema.yml
+│       ├── staging/
+│       │   ├── sources.yml
+│       │   ├── stg_sensor_readings.sql
+│       │   └── stg_rul_labels.sql
+│       └── marts/
+│           └── fct_equipment_health_features.sql
 ├── orchestration/
 │   ├── dagster_assets.py
 │   └── run_local.py
 ├── duckdb/
-│   └── duckdb_setup.py
 └── data/
     └── raw/   ← NASA C-MAPSS files (NOT committed)
 ```
@@ -60,11 +76,19 @@ RUL_FD001.txt    RUL_FD002.txt    RUL_FD003.txt    RUL_FD004.txt
 
 ## Setup
 
+A single virtual environment is used for the whole pipeline:
+
+```bash
+py -3.11 -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+pip install dbt-core dbt-duckdb
+```
+
 ```bash
 git clone https://github.com/Maaskk/industrial-equipment-health-platform.git
 cd industrial-equipment-health-platform
 git checkout feature/mohamed-kar1-dataops-infra
-pip install dlt[duckdb] duckdb dagster dagster-webserver pandas
 ```
 
 ---
@@ -84,20 +108,31 @@ Expected output:
 Pipeline cmapss_ingestion load step completed in ~50 seconds
 Load package ... is LOADED and contains no failed jobs
 
-=== Step 2: DuckDB setup ===
-DuckDB warehouse ready at cmapss_ingestion.duckdb
-staging.stg_sensor_readings : 265256 lignes
+=== Step 2: dbt run (staging + marts) ===
+Done. PASS=3 WARN=0 ERROR=0 SKIP=0 NO-OP=0 TOTAL=3
+
+=== Step 3: dbt test ===
+Done. PASS=8 WARN=0 ERROR=0 SKIP=0 NO-OP=0 TOTAL=8
 
 === Done. Feature table ready for Mouhcine. ===
 ```
 
-### Option B — Dagster UI
+### Option B — dbt directly
+
+```bash
+set DBT_DUCKDB_PATH=<absolute path to cmapss_ingestion.duckdb>
+cd dbt_project
+dbt run
+dbt test
+```
+
+### Option C — Dagster UI
 
 ```bash
 python -m dagster dev -f orchestration/dagster_assets.py
 ```
 
-Open http://localhost:3000 → Catalog → Select all → Materialize selected
+Open http://localhost:3000 → Assets → Select all → Materialize selected
 
 ---
 
@@ -107,19 +142,23 @@ Open http://localhost:3000 → Catalog → Select all → Materialize selected
 python -m pytest tests/test_dataops.py -v
 ```
 
-Expected: **11 passed**
-
 ---
 
 ## DuckDB Warehouse Structure
 
-| Schema | Table | Description |
-|--------|-------|-------------|
-| raw | raw_sensor_readings | Raw sensor data ingested by dlt |
-| raw | raw_rul_labels | Raw RUL labels ingested by dlt |
-| staging | stg_sensor_readings | Cleaned sensor readings (265 256 rows) |
-| staging | stg_rul_labels | Cleaned RUL labels |
-| marts | fct_equipment_health_features | Feature-engineered table for ML |
+| Schema | Table | Produced by | Description |
+|--------|-------|-------------|-------------|
+| raw | raw_sensor_readings | dlt | Raw sensor data ingested by dlt |
+| raw | raw_rul_labels | dlt | Raw RUL labels ingested by dlt |
+| staging | stg_sensor_readings | dbt | Cleaned sensor readings (265 256 rows) |
+| staging | stg_rul_labels | dbt | Cleaned RUL labels |
+| marts | fct_equipment_health_features | dbt | Feature-engineered table for ML |
+
+All transformations between raw, staging, and marts are implemented as dbt models
+(`dbt_project/models/staging/`, `dbt_project/models/marts/`), with native dbt tests
+acting as the data contract (`not_null`, `unique`, `accepted_values`).
+
+Database file: `cmapss_ingestion.duckdb` (at project root).
 
 ---
 
@@ -134,16 +173,31 @@ Expected: **11 passed**
 
 ---
 
+## dbt Data Quality Tests
+
+| Model | Column | Test |
+|-------|--------|------|
+| stg_sensor_readings | engine_id, cycle | not_null |
+| stg_rul_labels | engine_id | not_null, unique |
+| fct_equipment_health_features | engine_id, cycle_norm | not_null |
+| fct_equipment_health_features | engine_age_bucket | not_null, accepted_values (young/middle/old) |
+
+Result: **8/8 tests passing.**
+
+---
+
 ## Dagster Assets
 
 | Asset | Description |
 |-------|-------------|
 | `raw_sensor_data` | dlt ingestion → DuckDB raw schema |
-| `duckdb_warehouse` | staging + marts + feature engineering |
-| `feature_table_validation` | validates staging.stg_sensor_readings row count |
-| `feature_engineering` | validates marts.fct_equipment_health_features row count |
+| `dbt_transform` | Runs `dbt run` (staging + marts models) |
+| `dbt_test` | Runs `dbt test` (data quality checks) |
+| `feature_table_validation` | Validates `staging.stg_sensor_readings` row count |
+| `feature_engineering` | Validates `marts.fct_equipment_health_features` row count |
 
 Schedule: daily at 06:00.
+All 5 assets run in the same environment; dbt is invoked directly via `dbt` on PATH.
 
 ---
 
@@ -153,6 +207,7 @@ Schedule: daily at 06:00.
 DB file  : cmapss_ingestion.duckdb
 Schema   : marts
 Table    : fct_equipment_health_features
+Produced by: dbt (dbt_project/models/marts/fct_equipment_health_features.sql)
 Columns  : engine_id, cycle, setting_1..3, sensor_1..21,
            cycle_norm, engine_age_bucket,
            sensor_*_rolling_mean_5, sensor_*_rolling_std_5
@@ -166,8 +221,11 @@ Rows     : 265 256
 | Criteria | Status |
 |----------|--------|
 | Raw data can be ingested reproducibly | ✅ |
-| DuckDB contains raw and staging tables | ✅ |
-| Dagster can run the pipeline locally | ✅ |
+| DuckDB contains raw, staging and marts tables | ✅ |
+| Transformations implemented with dbt (not raw SQL) | ✅ |
+| dbt data quality tests passing (8/8) | ✅ |
+| Dagster can run the full pipeline locally | ✅ |
+| Single virtual environment for all 4 tools | ✅ |
 | Feature table path documented for Mouhcine | ✅ |
 | Commands documented and tested | ✅ |
-| 11 unit tests passing | ✅ |
+```

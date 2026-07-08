@@ -11,7 +11,7 @@ venv/
 data/raw/
 data/interim/
 data/processed/
-models/
+/models/
 mlruns/
 *.duckdb
 *.db
@@ -30,3 +30,10 @@ mlruns/
 
 # Dagster
 .tmp_dagster_home*/
+
+
+venv/
+
+dbt_project/target/
+dbt_project/logs/
+dbt_project/.user.yml

@@ -1,8 +1,19 @@
 from dagster import asset, AssetExecutionContext, define_asset_job, ScheduleDefinition, Definitions
 from pathlib import Path
+import subprocess
 import sys
+import os
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
+
+DBT_PROJECT_DIR = Path(__file__).parent.parent / "dbt_project"
+DUCKDB_PATH = Path(__file__).parent.parent / "cmapss_ingestion.duckdb"
+DBT_EXECUTABLE = "dbt"
+
+def _dbt_env():
+    env = os.environ.copy()
+    env["DBT_DUCKDB_PATH"] = str(DUCKDB_PATH)
+    return env
 
 
 @asset(group_name="dataops", description="Ingest raw NASA C-MAPSS data into DuckDB via dlt")
@@ -13,25 +24,40 @@ def raw_sensor_data(context: AssetExecutionContext):
     return {"status": "ok", "pipeline": "cmapss_ingestion"}
 
 
-@asset(group_name="dataops", deps=[raw_sensor_data], description="Setup DuckDB schemas and staging tables")
-def duckdb_warehouse(context: AssetExecutionContext):
-    import importlib.util
-    spec = importlib.util.spec_from_file_location(
-        "duckdb_setup",
-        Path(__file__).parent.parent / "duckdb" / "duckdb_setup.py"
+@asset(group_name="dataops", deps=[raw_sensor_data], description="Run dbt transformations (staging + marts)")
+def dbt_transform(context: AssetExecutionContext):
+    result = subprocess.run(
+        [DBT_EXECUTABLE, "run", "--project-dir", str(DBT_PROJECT_DIR), "--profiles-dir", str(DBT_PROJECT_DIR)],
+        capture_output=True,
+        text=True,
+        env=_dbt_env(),
     )
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    mod.setup_warehouse()
-    context.log.info("DuckDB warehouse configured")
+    context.log.info(result.stdout)
+    if result.returncode != 0:
+        context.log.error(result.stderr)
+        raise Exception("dbt run failed")
     return {"status": "ok"}
 
 
-@asset(group_name="dataops", deps=[duckdb_warehouse], description="Validate feature table schema for Mouhcine's ML pipeline")
+@asset(group_name="dataops", deps=[dbt_transform], description="Run dbt tests on staging and marts models")
+def dbt_test(context: AssetExecutionContext):
+    result = subprocess.run(
+        [DBT_EXECUTABLE, "test", "--project-dir", str(DBT_PROJECT_DIR), "--profiles-dir", str(DBT_PROJECT_DIR)],
+        capture_output=True,
+        text=True,
+        env=_dbt_env(),
+    )
+    context.log.info(result.stdout)
+    if result.returncode != 0:
+        context.log.error(result.stderr)
+        raise Exception("dbt test failed")
+    return {"status": "ok"}
+
+
+@asset(group_name="dataops", deps=[dbt_transform], description="Validate feature table schema for Mouhcine's ML pipeline")
 def feature_table_validation(context: AssetExecutionContext):
     import duckdb
-    db_path = str(Path(__file__).parent.parent / "cmapss_ingestion.duckdb")
-    con = duckdb.connect(db_path)
+    con = duckdb.connect(str(DUCKDB_PATH))
     try:
         count = con.execute("SELECT COUNT(*) FROM staging.stg_sensor_readings").fetchone()[0]
         context.log.info(f"Feature table rows: {count}")
@@ -41,11 +67,10 @@ def feature_table_validation(context: AssetExecutionContext):
         con.close()
 
 
-@asset(group_name="dataops", deps=[duckdb_warehouse], description="Feature engineering - fct_equipment_health_features for ML")
+@asset(group_name="dataops", deps=[dbt_transform], description="Feature engineering - fct_equipment_health_features for ML")
 def feature_engineering(context: AssetExecutionContext):
     import duckdb
-    db_path = str(Path(__file__).parent.parent / "cmapss_ingestion.duckdb")
-    con = duckdb.connect(db_path)
+    con = duckdb.connect(str(DUCKDB_PATH))
     try:
         count = con.execute("SELECT COUNT(*) FROM marts.fct_equipment_health_features").fetchone()[0]
         context.log.info(f"fct_equipment_health_features rows: {count}")
@@ -57,7 +82,7 @@ def feature_engineering(context: AssetExecutionContext):
 
 ingestion_job = define_asset_job(
     name="full_ingestion_job",
-    selection=["raw_sensor_data", "duckdb_warehouse", "feature_table_validation", "feature_engineering"]
+    selection=["raw_sensor_data", "dbt_transform", "dbt_test", "feature_table_validation", "feature_engineering"]
 )
 
 daily_schedule = ScheduleDefinition(
@@ -66,7 +91,7 @@ daily_schedule = ScheduleDefinition(
 )
 
 defs = Definitions(
-    assets=[raw_sensor_data, duckdb_warehouse, feature_table_validation, feature_engineering],
+    assets=[raw_sensor_data, dbt_transform, dbt_test, feature_table_validation, feature_engineering],
     jobs=[ingestion_job],
     schedules=[daily_schedule],
 )
