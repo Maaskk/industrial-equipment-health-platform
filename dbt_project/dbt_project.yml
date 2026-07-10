@@ -1,0 +1,20 @@
+name: 'cmapss_dbt'
+version: '1.0.0'
+config-version: 2
+
+profile: 'cmapss_dbt'
+
+model-paths: ["models"]
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  cmapss_dbt:
+    staging:
+      +materialized: table
+      +schema: staging
+    marts:
+      +materialized: table
+      +schema: marts

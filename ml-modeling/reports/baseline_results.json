@@ -1,0 +1,65 @@
+{
+  "model": "RandomForestRegressor (baseline, raw sensors)",
+  "features": [
+    "op_setting_1",
+    "op_setting_2",
+    "op_setting_3",
+    "sensor_1",
+    "sensor_2",
+    "sensor_3",
+    "sensor_4",
+    "sensor_5",
+    "sensor_6",
+    "sensor_7",
+    "sensor_8",
+    "sensor_9",
+    "sensor_10",
+    "sensor_11",
+    "sensor_12",
+    "sensor_13",
+    "sensor_14",
+    "sensor_15",
+    "sensor_16",
+    "sensor_17",
+    "sensor_18",
+    "sensor_19",
+    "sensor_20",
+    "sensor_21"
+  ],
+  "rul_clip": 125,
+  "cv_metrics": [
+    {
+      "MAE": 14.267767352069784,
+      "RMSE": 19.16512837136052,
+      "fold": 0
+    },
+    {
+      "MAE": 14.350288177403277,
+      "RMSE": 19.054348867805032,
+      "fold": 1
+    },
+    {
+      "MAE": 12.16548701405711,
+      "RMSE": 16.91386428195849,
+      "fold": 2
+    },
+    {
+      "MAE": 14.941578749625679,
+      "RMSE": 20.636891246270636,
+      "fold": 3
+    },
+    {
+      "MAE": 11.844388177573572,
+      "RMSE": 16.20884732941589,
+      "fold": 4
+    }
+  ],
+  "cv_avg": {
+    "MAE": 13.513901894145885,
+    "RMSE": 18.395816019362112
+  },
+  "test_metrics": {
+    "MAE": 12.428713337911006,
+    "RMSE": 17.12400377825454
+  }
+}

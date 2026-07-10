@@ -1,0 +1,93 @@
+x-app: &app
+  build: .
+  environment: &app-env
+    PYTHONPATH: /app/src
+    CMAPSS_DATA_DIR: /app/data/raw
+    DUCKDB_PATH: /app/warehouse/cmapss_ingestion.duckdb
+    DBT_DUCKDB_PATH: /app/warehouse/cmapss_ingestion.duckdb
+    MLFLOW_TRACKING_URI: http://mlflow:5000
+    MODEL_NAME: industrial-equipment-health-model
+    MODEL_VERSION: "1"
+    MODEL_PATH: /app/models/latest/model.pkl
+    FEATURE_SCHEMA_PATH: /app/models/latest/feature_schema.json
+    PREDICTION_LOG_PATH: /app/logs/prediction_logs.jsonl
+    TRAIN_SUBSETS: ${TRAIN_SUBSETS:-FD001 FD002 FD003 FD004}
+  volumes:
+    - ./data:/app/data
+    - ./models:/app/models
+    - ./logs:/app/logs
+    - ./reports:/app/reports
+    - ./warehouse:/app/warehouse
+    - ./mlflow:/app/mlflow
+
+services:
+  mlflow:
+    <<: *app
+    command: >
+      sh -c "mkdir -p /app/mlflow/artifacts &&
+             mlflow server
+             --backend-store-uri sqlite:////app/mlflow/mlflow.db
+             --default-artifact-root /app/mlflow/artifacts
+             --host 0.0.0.0
+             --port 5000"
+    ports:
+      - "5000:5000"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:5000', timeout=2).read()\""]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  training-init:
+    <<: *app
+    depends_on:
+      mlflow:
+        condition: service_healthy
+    command: >
+      sh -c "mkdir -p /app/data/raw /app/models /app/reports /app/warehouse &&
+             python scripts/download_data.py --data-dir /app/data/raw &&
+             python orchestration/run_local.py &&
+             python scripts/train_model.py"
+    restart: "no"
+
+  api:
+    <<: *app
+    depends_on:
+      training-init:
+        condition: service_completed_successfully
+      mlflow:
+        condition: service_healthy
+    command: python scripts/run_api.py
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=2).read()\""]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  dagster-webserver:
+    <<: *app
+    depends_on:
+      training-init:
+        condition: service_completed_successfully
+    environment:
+      <<: *app-env
+      DAGSTER_HOME: /app/.dagster
+    command: >
+      sh -c "mkdir -p /app/.dagster &&
+             dagster-webserver -m orchestration.dagster_assets -h 0.0.0.0 -p 3000"
+    ports:
+      - "3000:3000"
+
+  dagster-daemon:
+    <<: *app
+    depends_on:
+      training-init:
+        condition: service_completed_successfully
+    environment:
+      <<: *app-env
+      DAGSTER_HOME: /app/.dagster
+    command: >
+      sh -c "mkdir -p /app/.dagster &&
+             dagster-daemon run -m orchestration.dagster_assets"

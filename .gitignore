@@ -8,11 +8,17 @@ __pycache__/
 venv/
 
 # Data and model artifacts
-data/raw/
+data/raw/*
+ml-modeling/data/
 data/interim/
 data/processed/
-models/
+/models/
 mlruns/
+mlartifacts/
+mlflow/
+logs/
+reports/readiness/
+warehouse/
 *.duckdb
 *.db
 *.parquet
@@ -28,3 +34,10 @@ mlruns/
 .idea/
 .vscode/
 
+# Dagster
+.tmp_dagster_home*/
+
+# dbt
+dbt_project/target/
+dbt_project/logs/
+dbt_project/.user.yml
