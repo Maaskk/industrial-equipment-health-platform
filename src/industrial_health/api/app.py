@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from industrial_health.api.contracts import build_prediction_response
+from industrial_health.api.dashboard import DASHBOARD_HTML
 from industrial_health.mlops.model_loader import env_flag, load_model
 from industrial_health.mlops.model_registry import ModelMetadata, resolve_model_uri
 from industrial_health.mlops.monitoring import PredictionMonitor
@@ -27,6 +28,16 @@ def load_feature_names(schema_path: Path, model: Any) -> list[str]:
     )
 
 
+def read_feature_schema(schema_path: Path) -> list[str]:
+    if not schema_path.exists():
+        raise RuntimeError(f"Missing feature schema at {schema_path}")
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    required = schema.get("required")
+    if not isinstance(required, list) or not all(isinstance(item, str) for item in required):
+        raise RuntimeError(f"Invalid feature schema at {schema_path}")
+    return required
+
+
 def create_app(
     *,
     model_path: Path | None = None,
@@ -41,6 +52,7 @@ def create_app(
     """
 
     from fastapi import FastAPI, HTTPException
+    from fastapi.responses import HTMLResponse
     from pydantic import BaseModel, Field
 
     class PredictionRequest(BaseModel):
@@ -62,13 +74,47 @@ def create_app(
         os.getenv("PREDICTION_LOG_PATH", "logs/prediction_logs.jsonl")
     )
     fallback_enabled = env_flag("ALLOW_FALLBACK_MODEL") if allow_fallback is None else allow_fallback
-    model = load_model(resolved_model_path, allow_fallback=fallback_enabled)
+    configured_source = os.getenv("MODEL_SOURCE", "local").lower()
+    registry_uri = resolve_model_uri(metadata) if configured_source == "mlflow" else None
+    schema_features = read_feature_schema(resolved_schema_path) if registry_uri else None
+    model = load_model(
+        resolved_model_path,
+        model_uri=registry_uri,
+        allow_fallback=fallback_enabled,
+        feature_names=schema_features,
+    )
     required_features = load_feature_names(resolved_schema_path, model)
     request_feature_names = [name for name in required_features if name != "cycle"]
     model_metadata = getattr(model, "metadata", {}) or {}
-    model_version = str(model_metadata.get("model_version") or metadata.version)
-    model_source = "local_pickle" if resolved_model_path.exists() else "fallback"
+    if registry_uri and metadata.alias:
+        from mlflow import MlflowClient
+
+        model_version = str(
+            MlflowClient().get_model_version_by_alias(metadata.name, metadata.alias).version
+        )
+    else:
+        model_version = str(model_metadata.get("model_version") or metadata.version)
+    model_source = "mlflow_registry" if registry_uri else ("local_pickle" if resolved_model_path.exists() else "fallback")
     monitor = PredictionMonitor(resolved_monitor_path)
+
+    @app.get("/", response_class=HTMLResponse, include_in_schema=False)
+    def dashboard() -> str:
+        return DASHBOARD_HTML
+
+    @app.get("/demo-payload")
+    def demo_payload() -> dict[str, object]:
+        path = Path(os.getenv("DEMO_PAYLOAD_PATH", "demo/predict_sample.json"))
+        if not path.exists():
+            raise HTTPException(status_code=503, detail="Demo payload is not available")
+        return json.loads(path.read_text(encoding="utf-8"))
+
+    @app.get("/predictions/recent")
+    def recent_predictions(limit: int = 12) -> list[dict[str, object]]:
+        bounded_limit = max(1, min(limit, 50))
+        if not resolved_monitor_path.exists():
+            return []
+        lines = resolved_monitor_path.read_text(encoding="utf-8").splitlines()[-bounded_limit:]
+        return [json.loads(line) for line in lines if line.strip()]
 
     @app.get("/health")
     def health() -> dict[str, object]:

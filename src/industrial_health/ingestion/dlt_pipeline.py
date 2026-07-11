@@ -49,7 +49,9 @@ def sensor_readings():
         if not path.exists() or "RUL" in name:
             continue
         df = _load_cmapss_file(path)
-        yield df.to_dict(orient="records")
+        # dlt converts DataFrames to Arrow batches. Avoid materializing hundreds
+        # of thousands of Python dictionaries during a clean local rebuild.
+        yield df
 
 
 @dlt.resource(name="raw_rul_labels", write_disposition="replace")
@@ -59,7 +61,7 @@ def rul_labels():
             continue
         df = _load_cmapss_file(path, is_rul=True)
         df["source_file"] = name
-        yield df.to_dict(orient="records")
+        yield df
 
 
 @dlt.source
@@ -68,6 +70,9 @@ def cmapss_source():
 
 
 def run_pipeline():
+    # Keep Arrow batches compatible with dlt's relational table contract.
+    dlt.config["normalize.parquet_normalizer.add_dlt_id"] = True
+    dlt.config["normalize.parquet_normalizer.add_dlt_load_id"] = True
     pipeline = dlt.pipeline(
         pipeline_name="cmapss_ingestion",
         destination=dlt.destinations.duckdb(credentials=str(DUCKDB_PATH)),

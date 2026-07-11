@@ -1,4 +1,11 @@
-from dagster import asset, AssetExecutionContext, define_asset_job, ScheduleDefinition, Definitions
+from dagster import (
+    AssetExecutionContext,
+    Definitions,
+    ScheduleDefinition,
+    asset,
+    define_asset_job,
+    in_process_executor,
+)
 from pathlib import Path
 import subprocess
 import sys
@@ -63,10 +70,10 @@ def dbt_test(context: AssetExecutionContext):
     return {"status": "ok"}
 
 
-@asset(group_name="dataops", deps=[dbt_transform], description="Validate feature table schema for Mouhcine's ML pipeline")
+@asset(group_name="dataops", deps=[dbt_test], description="Validate the staged row contract after dbt tests")
 def feature_table_validation(context: AssetExecutionContext):
     import duckdb
-    con = duckdb.connect(str(DUCKDB_PATH))
+    con = duckdb.connect(str(DUCKDB_PATH), read_only=True)
     try:
         count = con.execute("SELECT COUNT(*) FROM staging.stg_sensor_readings").fetchone()[0]
         context.log.info(f"Feature table rows: {count}")
@@ -76,10 +83,10 @@ def feature_table_validation(context: AssetExecutionContext):
         con.close()
 
 
-@asset(group_name="dataops", deps=[dbt_transform], description="Feature engineering - fct_equipment_health_features for ML")
+@asset(group_name="dataops", deps=[feature_table_validation], description="Validate the final dbt feature mart for ML")
 def feature_engineering(context: AssetExecutionContext):
     import duckdb
-    con = duckdb.connect(str(DUCKDB_PATH))
+    con = duckdb.connect(str(DUCKDB_PATH), read_only=True)
     try:
         count = con.execute("SELECT COUNT(*) FROM marts.fct_equipment_health_features").fetchone()[0]
         context.log.info(f"fct_equipment_health_features rows: {count}")
@@ -89,18 +96,75 @@ def feature_engineering(context: AssetExecutionContext):
         con.close()
 
 
-ingestion_job = define_asset_job(
-    name="full_ingestion_job",
-    selection=["raw_sensor_data", "dbt_transform", "dbt_test", "feature_table_validation", "feature_engineering"]
+@asset(
+    group_name="mlops",
+    deps=[feature_engineering],
+    description="Train, evaluate, register, and alias the final C-MAPSS model in MLflow",
+)
+def model_training(context: AssetExecutionContext):
+    command = [sys.executable, "scripts/execute_training_notebook.py", "--duckdb-path", str(DUCKDB_PATH)]
+    result = subprocess.run(
+        command,
+        cwd=Path(__file__).parent.parent,
+        capture_output=True,
+        text=True,
+        env=os.environ.copy(),
+    )
+    context.log.info(result.stdout)
+    if result.returncode != 0:
+        context.log.error(result.stderr)
+        raise RuntimeError("Model training or MLflow registration failed")
+    metrics_path = Path(__file__).parent.parent / "reports/model_metrics/final_evaluation.json"
+    if not metrics_path.exists():
+        raise RuntimeError("Training completed without the required evaluation artifact")
+    return {"status": "registered", "metrics_path": str(metrics_path)}
+
+
+@asset(group_name="mlops", deps=[model_training], description="Generate the local prediction drift report")
+def drift_report(context: AssetExecutionContext):
+    result = subprocess.run(
+        [sys.executable, "scripts/generate_drift_report.py"],
+        cwd=Path(__file__).parent.parent,
+        capture_output=True,
+        text=True,
+        env=os.environ.copy(),
+    )
+    context.log.info(result.stdout)
+    if result.returncode != 0:
+        context.log.error(result.stderr)
+        raise RuntimeError("Drift report generation failed")
+    return {"status": "ok", "report": "reports/monitoring/drift_report.json"}
+
+
+final_mlops_job = define_asset_job(
+    name="final_mlops_job",
+    executor_def=in_process_executor,
+    selection=[
+        "raw_sensor_data",
+        "dbt_transform",
+        "dbt_test",
+        "feature_table_validation",
+        "feature_engineering",
+        "model_training",
+        "drift_report",
+    ],
 )
 
 daily_schedule = ScheduleDefinition(
-    job=ingestion_job,
+    job=final_mlops_job,
     cron_schedule="0 6 * * *",
 )
 
 defs = Definitions(
-    assets=[raw_sensor_data, dbt_transform, dbt_test, feature_table_validation, feature_engineering],
-    jobs=[ingestion_job],
+    assets=[
+        raw_sensor_data,
+        dbt_transform,
+        dbt_test,
+        feature_table_validation,
+        feature_engineering,
+        model_training,
+        drift_report,
+    ],
+    jobs=[final_mlops_job],
     schedules=[daily_schedule],
 )

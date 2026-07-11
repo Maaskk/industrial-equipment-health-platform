@@ -1,14 +1,7 @@
--- Table de features pour le pipeline ML de Mouhcine
--- Equivalent au bloc "marts.fct_equipment_health_features" de duckdb_setup.py
-
-with base as (
-    select
-        *,
-        max(cycle) over (partition by engine_id) as max_cycle
-    from {{ ref('stg_sensor_readings') }}
-),
-
-features as (
+-- Point-in-time-safe feature table consumed by scripts/train_model.py.
+-- Every value depends only on the current or preceding cycles; no engine-final
+-- cycle is used, avoiding train/serving leakage.
+with features as (
     select
         engine_id,
         cycle,
@@ -19,15 +12,13 @@ features as (
         sensor_16, sensor_17, sensor_18, sensor_19, sensor_20,
         sensor_21,
         source_file,
-
-        -- cycle_norm
-        cast(cycle as float) / max_cycle as cycle_norm,
-
-        -- engine_age_bucket
+        case when source_file like 'train_%' then 'train' else 'test' end as split,
+        cast(regexp_extract(source_file, 'FD([0-9]+)', 1) as integer) as subset_id,
+        ln(1 + cast(cycle as double)) as cycle_log1p,
         case
-            when cast(cycle as float) / max_cycle < 0.33 then 'young'
-            when cast(cycle as float) / max_cycle < 0.66 then 'middle'
-            else 'old'
+            when cycle < 75 then 'early'
+            when cycle < 150 then 'middle'
+            else 'late'
         end as engine_age_bucket,
 
         -- rolling mean 5
@@ -50,7 +41,7 @@ features as (
         stddev(sensor_12) over (partition by engine_id order by cycle rows between 4 preceding and current row) as sensor_12_rolling_std_5,
         stddev(sensor_15) over (partition by engine_id order by cycle rows between 4 preceding and current row) as sensor_15_rolling_std_5
 
-    from base
+    from {{ ref('stg_sensor_readings') }}
 )
 
 select * from features

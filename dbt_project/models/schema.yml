@@ -27,8 +27,8 @@ models:
       - name: engine_id
         tests:
           - not_null
-      - name: cycle_norm
-        description: "Cycle normalisé entre 0 et 1"
+      - name: cycle_log1p
+        description: "Transformation causale du cycle courant, sans connaissance de la fin de vie"
         tests:
           - not_null
       - name: engine_age_bucket
@@ -37,4 +37,13 @@ models:
           - not_null
           - accepted_values:
               arguments:
-                values: ['young', 'middle', 'old']
+                values: ['early', 'middle', 'late']
+      - name: split
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['train', 'test']
+      - name: subset_id
+        tests:
+          - not_null

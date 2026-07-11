@@ -28,9 +28,10 @@ This starts:
 
 - MLflow tracking server: http://localhost:5000
 - FastAPI service: http://localhost:8000
+- Equipment health dashboard: http://localhost:8000
 - FastAPI docs: http://localhost:8000/docs
 - Dagster webserver: http://localhost:3000
-- `training-init`, which downloads NASA C-MAPSS, runs dlt/dbt, and trains the model before the API starts.
+- `training-init`, which downloads NASA C-MAPSS and executes the full Dagster job: dlt, dbt, tests, a genuinely executed training notebook, MLflow registration, and monitoring evidence.
 
 For a direct local Python run:
 
@@ -40,7 +41,7 @@ python -m venv .venv
 pip install -r requirements.txt
 PYTHONPATH=src python scripts/download_data.py
 PYTHONPATH=src python orchestration/run_local.py
-PYTHONPATH=src python scripts/train_model.py
+PYTHONPATH=src python scripts/execute_training_notebook.py
 PYTHONPATH=src uvicorn industrial_health.api.app:app --host 0.0.0.0 --port 8000
 ```
 
@@ -55,7 +56,7 @@ curl -X POST http://localhost:8000/predict \
 
 ## Final Training Proof
 
-The final executed training run used all NASA C-MAPSS subsets FD001-FD004:
+The final notebook was executed by a real Jupyter kernel and used the dbt/DuckDB output for all NASA C-MAPSS subsets FD001-FD004:
 
 - raw training rows: 160,359
 - raw test rows: 104,897
@@ -133,7 +134,7 @@ Detailed task files are in [`team/`](team/).
   - `GET /health`
   - `POST /predict`
 - Docker containerization.
-- GitHub Actions CI/CD. The active workflow is stored in [`.github/workflows/ci.yml`](.github/workflows/ci.yml), with a reference template in [`docs/ci/github-actions-template.yml`](docs/ci/github-actions-template.yml).
+- GitHub Actions CI/CD. The active workflow is stored in [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 - Monitoring for service health, latency, ML metrics, and drift.
 - Final report, demo, and presentation.
 

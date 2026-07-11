@@ -1,8 +1,8 @@
 # Data Quality Strategy & Monitoring
 
 **Document Owner**: Hamza Elhaddaji  
-**Last Updated**: Q3 2024  
-**Status**: Draft
+**Last Updated**: 2026-07-11
+**Status**: Final integration baseline
 
 ---
 
@@ -358,4 +358,5 @@ Key checkpoints:
 
 **Document History**:
 - v0.1 (Q3 2024): Initial draft by Hamza
+- v1.0 (2026-07-11): Final integration, dbt/DuckDB training gate, and leakage-safe mart
 - v0.2: Pending team review

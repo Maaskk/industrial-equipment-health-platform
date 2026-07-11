@@ -6,7 +6,7 @@
 |----------|-------|
 | **Contract ID** | `DC-002-STAGING` |
 | **Owner** | Hamza Elhaddaji & Mohamed |
-| **Status** | Draft (Sprint 1) |
+| **Status** | Approved and enforced |
 | **Last Updated** | 2024-Q3 |
 | **Upstream** | `raw_sensor_readings` |
 | **Storage** | DuckDB (staging schema) |

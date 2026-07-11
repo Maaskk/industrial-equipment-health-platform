@@ -1,8 +1,8 @@
 # Data Lineage Diagram
 
 **Document Owner**: Hamza Elhaddaji  
-**Last Updated**: Q3 2024  
-**Status**: Draft
+**Last Updated**: 2026-07-11
+**Status**: Final integration baseline
 
 ---
 
@@ -198,7 +198,7 @@ stg.stg_sensor_readings
 │     ├─ All 21 sensors
 │     ├─ rolling_mean_5 (each sensor)
 │     ├─ rolling_std_5 (each sensor)
-│     └─ cycle_norm
+│     └─ cycle_log1p (point-in-time safe)
 │
 ├─ dbt Model: int_sensor_degradation_rates
 │  │
@@ -267,10 +267,9 @@ int_engine_statistics
 | Layer | Table | Owner(s) | Maintainer | Status |
 |-------|-------|----------|-----------|--------|
 | Raw | raw_sensor_readings | Mohamed | Mohamed | 🟢 Active |
-| Staging | stg_sensor_readings | Hamza | Hamza | 🟡 Draft |
-| Intermediate | int_* | Hamza | Hamza | 🟡 Draft |
-| Features | fct_equipment_health_features | Hamza, Mouhcine | Hamza/Mouhcine | 🟡 Draft |
-| ML | training_dataset | Mouhcine | Mouhcine | 🟡 Draft |
+| Staging | stg_sensor_readings | Hamza | Hamza | Final |
+| Features | fct_equipment_health_features | Hamza, Mouhcine | Hamza/Mouhcine | Final |
+| ML | dbt-backed training dataset | Mouhcine, Ossama | Mouhcine/Ossama | Final |
 
 ---
 
@@ -401,5 +400,5 @@ When updating lineage (e.g., adding new feature):
 
 ---
 
-**Last Updated**: Q3 2024  
+**Last Updated**: 2026-07-11
 **Next Review**: End of Sprint 2

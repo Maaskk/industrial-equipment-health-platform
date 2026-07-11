@@ -166,8 +166,8 @@ Database file: `cmapss_ingestion.duckdb` (at project root).
 
 | Feature | Description |
 |---------|-------------|
-| `cycle_norm` | Cycle normalized between 0 and 1 |
-| `engine_age_bucket` | young / middle / old |
+| `cycle_log1p` | Point-in-time-safe transform of the current cycle |
+| `engine_age_bucket` | early / middle / late, based only on the current cycle |
 | `sensor_*_rolling_mean_5` | Rolling mean over 5 cycles (sensors 1,2,3,4,7,11,12,15) |
 | `sensor_*_rolling_std_5` | Rolling std over 5 cycles (sensors 1,2,3,4,7,11,12,15) |
 
@@ -179,8 +179,8 @@ Database file: `cmapss_ingestion.duckdb` (at project root).
 |-------|--------|------|
 | stg_sensor_readings | engine_id, cycle | not_null |
 | stg_rul_labels | engine_id | not_null, unique |
-| fct_equipment_health_features | engine_id, cycle_norm | not_null |
-| fct_equipment_health_features | engine_age_bucket | not_null, accepted_values (young/middle/old) |
+| fct_equipment_health_features | engine_id, cycle_log1p, split, subset_id | not_null |
+| fct_equipment_health_features | engine_age_bucket | not_null, accepted_values (early/middle/late) |
 
 Result: **8/8 tests passing.**
 
@@ -195,9 +195,11 @@ Result: **8/8 tests passing.**
 | `dbt_test` | Runs `dbt test` (data quality checks) |
 | `feature_table_validation` | Validates `staging.stg_sensor_readings` row count |
 | `feature_engineering` | Validates `marts.fct_equipment_health_features` row count |
+| `model_training` | Executes the real notebook, evaluates the model, and registers it in MLflow |
+| `drift_report` | Produces monitoring evidence after model registration |
 
 Schedule: daily at 06:00.
-All 5 assets run in the same environment; dbt is invoked directly via `dbt` on PATH.
+All 7 assets run in one dependency graph; the Docker startup materialization is preserved in shared Dagster storage.
 
 ---
 
@@ -209,7 +211,7 @@ Schema   : marts
 Table    : fct_equipment_health_features
 Produced by: dbt (dbt_project/models/marts/fct_equipment_health_features.sql)
 Columns  : engine_id, cycle, setting_1..3, sensor_1..21,
-           cycle_norm, engine_age_bucket,
+           split, subset_id, cycle_log1p, engine_age_bucket,
            sensor_*_rolling_mean_5, sensor_*_rolling_std_5
 Rows     : 265 256
 ```

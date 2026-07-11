@@ -7,7 +7,7 @@ Owner: `Maaskk`
 - `main` has the final merged code.
 - Docker builds successfully.
 - MLflow opens locally.
-- API health endpoint returns `status: ok`.
+- API health endpoint returns `status: ready` and `model_source: mlflow_registry`.
 - Prediction endpoint returns RUL, risk level, model version, and latency.
 - Prediction logs are generated.
 - At least one drift example is ready.
@@ -27,12 +27,6 @@ Owner: `Maaskk`
 
 ## Commands
 
-Create a temporary demo model artifact:
-
-```bash
-PYTHONPATH=src python scripts/register_demo_model.py
-```
-
 ```bash
 docker compose up --build
 ```
@@ -44,7 +38,7 @@ curl http://localhost:8000/health
 ```bash
 curl -X POST http://localhost:8000/predict \
   -H "Content-Type: application/json" \
-  -d '{"engine_id":"engine_001","cycle":120,"features":{"sensor_1":518.67}}'
+  --data @demo/predict_sample.json
 ```
 
 Run the smoke script:
@@ -58,4 +52,3 @@ Generate readiness evidence:
 ```bash
 PYTHONPATH=src python scripts/check_readiness.py
 ```
-

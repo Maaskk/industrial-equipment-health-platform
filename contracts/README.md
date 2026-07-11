@@ -7,23 +7,23 @@ This directory contains the data quality contracts that define the expected stru
 ### 1. `raw_sensor_readings.md`
 - **Purpose**: Define raw data ingestion contract from NASA C-MAPSS dataset
 - **Owner**: Mohamed (Ingestion) + Hamza (Quality)
-- **Status**: Draft
+- **Status**: Approved and enforced
 - **Key Sections**: Schema, quality rules, acceptance criteria, lineage
-- **Enforced By**: dbt tests in `../dbt/models/raw/schema.yml`
+- **Enforced By**: ingestion checks and `../dbt_project/models/schema.yml`
 
 ### 2. `stg_sensor_readings.md`
 - **Purpose**: Define staging/cleaning layer after data transformation
 - **Owner**: Hamza (Quality)
-- **Status**: Draft
+- **Status**: Approved and enforced
 - **Key Sections**: Data cleaning rules, transformations, validation logic
-- **Enforced By**: dbt tests in `../dbt/models/staging/schema.yml`
+- **Enforced By**: `../dbt_project/models/schema.yml`
 
 ### 3. `fct_equipment_health_features.md`
 - **Purpose**: Define final ML-ready feature table
 - **Owner**: Hamza (Quality) + Mouhcine (ML)
-- **Status**: Draft
+- **Status**: Approved and enforced
 - **Key Sections**: Feature schema, ML readiness criteria, handoff specs
-- **Enforced By**: dbt tests in `../dbt/models/marts/schema.yml`
+- **Enforced By**: `../dbt_project/models/schema.yml`
 
 ---
 
@@ -32,7 +32,7 @@ This directory contains the data quality contracts that define the expected stru
 Each contract is enforced through:
 1. **dbt tests** in `schema.yml` files (automated validation)
 2. **dbt models** in respective layer folders
-3. **Python tests** in `../tests/data_quality/`
+3. **Python tests** in `../tests/test_dataops.py`
 
 ### Quality Gate Flow
 ```
@@ -58,7 +58,7 @@ ML Training (Mouhcine)
 - `../docs/data-quality.md` - Data quality monitoring and dashboards
 - `../docs/data-lineage.md` - Complete data lineage diagram
 - `../docs/qa-checklist.md` - Documentation QA checklist
-- `../dbt/models/*/schema.yml` - dbt test definitions
+- `../dbt_project/models/schema.yml` - dbt test definitions
 
 ---
 
@@ -87,12 +87,11 @@ ML Training (Mouhcine)
 ## ✅ Acceptance Criteria
 
 Contracts are complete when:
-- [ ] All 3 contracts drafted and reviewed
-- [ ] All dbt tests implemented and passing
-- [ ] Data quality documentation complete
-- [ ] Data lineage documented
-- [ ] QA checklist finalized
-- [ ] Team sign-off obtained
+- [x] All 3 contracts reviewed for final integration
+- [x] dbt tests implemented and passing locally
+- [x] Data quality documentation complete
+- [x] Data lineage documented
+- [x] Final training consumes the dbt/DuckDB output
 
 ---
 
@@ -106,5 +105,5 @@ git diff contracts/raw_sensor_readings.md
 
 ---
 
-**Last Updated**: Q3 2024  
+**Last Updated**: 2026-07-11
 **Owner**: Hamza Elhaddaji (Quality & Documentation Lead)

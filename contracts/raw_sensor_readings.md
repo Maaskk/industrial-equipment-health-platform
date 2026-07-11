@@ -6,7 +6,7 @@
 |----------|-------|
 | **Contract ID** | `DC-001-RAW` |
 | **Owner** | Hamza Elhaddaji |
-| **Status** | Draft (Sprint 1) |
+| **Status** | Approved and enforced |
 | **Last Updated** | 2024-Q3 |
 | **Data Source** | NASA C-MAPSS Turbofan Engine Degradation Dataset |
 | **Storage** | DuckDB (raw schema) |

@@ -1,174 +1,55 @@
 # Data Contract: Equipment Health Features
 
-## 1. Overview
+## Contract
 
 | Property | Value |
-|----------|-------|
-| **Contract ID** | `DC-003-FEATURES` |
-| **Owner** | Hamza Elhaddaji & Mouhcine |
-| **Status** | Draft (Sprint 1-2) |
-| **Last Updated** | 2024-Q3 |
-| **Upstream** | `stg_sensor_readings` |
-| **Downstream** | ML Training Pipeline |
-| **Storage** | DuckDB (marts schema) |
+|---|---|
+| Contract ID | `DC-003-FEATURES` |
+| Owners | Hamza Elhaddaji and Mouhcine |
+| Status | Approved and enforced |
+| Last updated | 2026-07-11 |
+| Upstream | `staging.stg_sensor_readings` |
+| Storage | `marts.fct_equipment_health_features` in DuckDB |
+| Downstream | `scripts/train_model.py` |
 
----
+The mart is the reviewed interface between DataOps and model training. Training reads this table directly when `TRAIN_SOURCE=duckdb`, which is the default and the Docker configuration.
 
-## 2. Purpose
+## Grain And Required Columns
 
-This contract defines the **feature table** used for machine learning model training and inference. It contains engineered features derived from raw sensor data and is the final contract between Data Engineering and ML Engineering.
+One row represents one observed cycle for one engine trajectory.
 
----
+- Identity: `engine_id`, `cycle`, `source_file`, `split`, `subset_id`
+- Operating settings: `setting_1` through `setting_3`
+- Sensors: `sensor_1` through `sensor_21`
+- Point-in-time-safe features: `cycle_log1p`, `engine_age_bucket`
+- Causal windows: selected `sensor_*_rolling_mean_5` and `sensor_*_rolling_std_5`
 
-## 3. Table: `fct_equipment_health_features`
+The target is intentionally not stored as a model feature. Training RUL is constructed from completed training trajectories; test RUL is constructed from `staging.stg_rul_labels`. Neither target nor an engine-final-cycle value enters the predictor matrix.
 
-### 3.1 Core Schema (Required for Training)
+## Leakage Policy
 
-| Column Name | Data Type | Nullable | Source | Description |
-|------------|-----------|----------|--------|-------------|
-| `feature_id` | VARCHAR(50) | NO | Computed | Unique: `engine_{id}_cycle_{cycle}` |
-| `engine_id` | INTEGER | NO | `stg_sensor_readings` | Engine identifier |
-| `cycle` | INTEGER | NO | `stg_sensor_readings` | Operating cycle |
-| `setting_1` | NUMERIC(10,6) | NO | `stg_sensor_readings` | Engine setting 1 (raw) |
-| `setting_2` | NUMERIC(10,6) | NO | `stg_sensor_readings` | Engine setting 2 (raw) |
-| `setting_3` | NUMERIC(10,6) | NO | `stg_sensor_readings` | Engine setting 3 (raw) |
-| `sensor_1` to `sensor_21` | NUMERIC(10,2) | NO | `stg_sensor_readings` | 21 raw sensor readings |
-| **`rul`** | NUMERIC(10,2) | NO | `stg_sensor_readings` | **Target Variable: Remaining Useful Life** |
+Every model input must be available at the current cycle. Features that divide by, aggregate over, or otherwise reveal the final cycle of an engine are forbidden. In particular, the former `cycle_norm = cycle / max_cycle` feature was removed because it had different train and serving semantics.
 
-### 3.2 Engineered Features (Optional)
+Rolling features use `rows between 4 preceding and current row`. The Python model pipeline also creates causal rolling means, standard deviations, and slopes from the curated mart.
 
-These features improve model performance and are created if time permits in Sprint 2:
+## Quality Rules
 
-| Column Name | Data Type | Source | Description |
-|------------|-----------|--------|-------------|
-| `sensor_1_rolling_mean_5` | NUMERIC(10,2) | Computed | 5-cycle rolling mean of sensor 1 |
-| `sensor_*_rolling_std_5` | NUMERIC(10,2) | Computed | 5-cycle rolling std of each sensor |
-| `cycle_norm` | NUMERIC(10,2) | Computed | Normalized cycle position (0-1 per engine) |
-| `engine_age_bucket` | VARCHAR(20) | Computed | Cycle bucket: 'early', 'mid', 'late' |
-| `sensor_degradation_rate` | NUMERIC(10,4) | Computed | Rate of change in sensor values |
+- `engine_id`, `cycle`, `split`, `subset_id`, and `cycle_log1p` are non-null.
+- `split` is exactly `train` or `test`.
+- `engine_age_bucket` is exactly `early`, `middle`, or `late`.
+- Each source trajectory retains all 21 numeric sensors and three settings.
+- The full four-subset mart contains 265,256 rows before rolling warm-up.
+- dbt tests and `tests/test_dataops.py` must pass before model training.
 
-### 3.3 Metadata Columns
+## Handoff
 
-| Column Name | Data Type | Description |
-|------------|-----------|-------------|
-| `dataset_split` | VARCHAR(20) | 'train', 'test', or 'val' |
-| `feature_created_at` | TIMESTAMP | When feature row was created |
-| `model_version` | VARCHAR(20) | Feature schema version |
-
----
-
-## 4. Quality Rules & Constraints
-
-### 4.1 Completeness
-- 100% of required columns must have values
-- `rul` must be present for training data
-- No NULL sensor values allowed
-- All 21 sensors required
-
-### 4.2 Validity
-- `rul` >= 0 for training data
-- Sensor values within documented ranges
-- All numeric columns must be valid numbers (no NaN, Inf)
-- Engineered features must be computable
-
-### 4.3 Uniqueness
-- `feature_id` is unique (no duplicates)
-- Each `(engine_id, cycle)` appears exactly once
-
-### 4.4 Consistency
-- Sensor values consistent with degradation physics
-- `rul` decreases as cycle increases per engine
-- No negative RUL jumps within engine lifecycle
-
-### 4.5 Distribution Check
-- Training set: 16,000-18,000 rows
-- Test set: 2,000-3,000 rows
-- No extreme imbalance in engine representation
-
----
-
-## 5. Data Shape & Statistics
-
-### 5.1 Expected Dimensions
-- **Rows (Training)**: ~16,500 records (20,631 total)
-- **Columns (Core)**: 28 (3 settings + 21 sensors + target + 3 ID/metadata)
-- **Columns (With Engineered)**: ~50
-- **Grain**: One row per (engine_id, cycle)
-
-### 5.2 Expected Statistics
-- **Missing Values**: 0%
-- **Numeric Features**: Mean and StdDev within realistic ranges
-- **Outliers**: < 0.5% (flagged in staging, excluded or handled)
-- **RUL Distribution**: Skewed right (more early-cycle records)
-
----
-
-## 6. Acceptance Criteria for ML Ready
-
-✅ **Can proceed to model training if:**
-1. All rows have valid, non-null sensor values
-2. No duplicate (engine_id, cycle) pairs
-3. RUL values are valid (>= 0)
-4. Dataset has 15,000+ training rows and 2,000+ test rows
-5. No critical data quality issues logged
-
-❌ **Must block training if:**
-1. > 5% of rows contain NULL or invalid values
-2. RUL has negative or unrealistic values
-3. Sensor range violations > 10%
-4. Rows are missing from expected engine IDs
-
----
-
-## 7. Feature Lineage
-
-```
-raw_sensor_readings (Contract DC-001)
-        ↓
-stg_sensor_readings (Contract DC-002)
-        ↓
-[dbt models: int_engine_lifecycle_windows]
-        ↓
-fct_equipment_health_features (Contract DC-003)
-        ↓
-[dbt test: validate_feature_table]
-        ↓
-model_training_dataset (Mouhcine's training pipeline)
+```text
+dlt raw tables
+  -> dbt staging
+  -> marts.fct_equipment_health_features
+  -> scripts/train_model.py --source duckdb
+  -> MLflow run and registered model version
+  -> FastAPI loads models:/industrial-equipment-health-model@champion
 ```
 
----
-
-## 8. Handoff to ML Engineering
-
-Mouhcine receives:
-
-```json
-{
-  "feature_table": "fct_equipment_health_features",
-  "training_rows": 16500,
-  "features": 28,
-  "target": "rul",
-  "train_test_split": "80/20",
-  "null_percentage": 0.0,
-  "quality_status": "PASS"
-}
-```
-
----
-
-## 9. Version History
-
-| Version | Date | Author | Change |
-|---------|------|--------|--------|
-| 0.1 | 2024-Q3 Sprint 1 | Hamza Elhaddaji | Initial draft |
-| 0.2 | 2024-Q3 Sprint 2 | Hamza + Mouhcine | Add engineered features |
-
----
-
-## 10. Related Artifacts
-
-- 📋 [Staging Contract](./stg_sensor_readings.md)
-- 📋 [Raw Contract](./raw_sensor_readings.md)
-- 🧪 [dbt Feature Tests](../dbt/models/marts/schema.yml)
-- 📊 [Architecture](../docs/architecture.md)
-- 🤖 [ML Feature Schema](../src/industrial_health/modeling/feature_schema.json)
+The generated serving schema at `models/latest/feature_schema.json` is the final API-to-model contract.

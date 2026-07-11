@@ -16,21 +16,15 @@ Health check:
 curl http://localhost:8000/health
 ```
 
-Prediction:
+Prediction with the generated schema-valid payload:
 
 ```bash
 curl -X POST http://localhost:8000/predict \
   -H "Content-Type: application/json" \
-  -d '{"engine_id":"engine_001","cycle":120,"features":{"sensor_1":518.67}}'
+  --data @demo/predict_sample.json
 ```
 
 ## Docker
-
-Create a temporary demo model artifact:
-
-```bash
-PYTHONPATH=src python scripts/register_demo_model.py
-```
 
 ```bash
 docker compose up --build
@@ -46,14 +40,10 @@ Services:
 The API resolves models using:
 
 ```text
-models:/industrial-equipment-health-model/<MODEL_VERSION>
+models:/industrial-equipment-health-model@champion
 ```
 
-or, when `MODEL_STAGE` is set:
-
-```text
-models:/industrial-equipment-health-model/<MODEL_STAGE>
-```
+Training creates a registered model version and updates the `champion` alias. The Docker API loads that alias directly from MLflow.
 
 ## Monitoring
 

@@ -100,22 +100,22 @@ def test_marts_feature_engineering_columns():
         "WHERE table_schema='marts' AND table_name='fct_equipment_health_features'"
     ).fetchall()]
     con.close()
-    required = ["cycle_norm", "engine_age_bucket",
+    required = ["cycle_log1p", "engine_age_bucket", "split", "subset_id",
                 "sensor_1_rolling_mean_5", "sensor_1_rolling_std_5"]
     for col in required:
         assert col in cols, f"Feature manquante: {col}"
 
 
-def test_marts_cycle_norm_range():
-    """cycle_norm doit être entre 0 et 1."""
+def test_marts_cycle_features_are_point_in_time_safe():
+    """La transformation du cycle ne doit pas dépendre du dernier cycle moteur."""
     con = get_connection()
     result = con.execute("""
-        SELECT MIN(cycle_norm), MAX(cycle_norm)
+        SELECT MIN(cycle_log1p), MAX(ABS(cycle_log1p - LN(1 + cycle)))
         FROM marts.fct_equipment_health_features
     """).fetchone()
     con.close()
-    assert result[0] >= 0.0, f"cycle_norm min = {result[0]} (doit être >= 0)"
-    assert result[1] <= 1.0, f"cycle_norm max = {result[1]} (doit être <= 1)"
+    assert result[0] >= 0.0
+    assert result[1] < 1e-10
 
 
 def test_marts_engine_age_bucket_values():
@@ -125,5 +125,14 @@ def test_marts_engine_age_bucket_values():
         "SELECT DISTINCT engine_age_bucket FROM marts.fct_equipment_health_features"
     ).fetchall()}
     con.close()
-    assert values.issubset({"young", "middle", "old"}), \
+    assert values.issubset({"early", "middle", "late"}), \
         f"Valeurs inattendues: {values}"
+
+
+def test_marts_contains_both_train_and_test_splits():
+    con = get_connection()
+    values = {row[0] for row in con.execute(
+        "SELECT DISTINCT split FROM marts.fct_equipment_health_features"
+    ).fetchall()}
+    con.close()
+    assert values == {"train", "test"}

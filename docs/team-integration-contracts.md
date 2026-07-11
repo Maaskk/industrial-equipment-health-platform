@@ -47,7 +47,7 @@ Optional engineered features:
 ```text
 sensor_*_rolling_mean_5
 sensor_*_rolling_std_5
-cycle_norm
+cycle_log1p
 engine_age_bucket
 ```
 

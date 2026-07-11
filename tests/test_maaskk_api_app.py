@@ -14,6 +14,19 @@ def route_for(path):
 
 
 class MaaskkApiAppTests(unittest.TestCase):
+    def test_dashboard_is_served_from_fastapi(self):
+        body = route_for("/").endpoint()
+
+        self.assertIn("Industrial Equipment Health Platform", body)
+        self.assertIn("Run prediction", body)
+
+    def test_demo_payload_matches_model_contract(self):
+        body = route_for("/demo-payload").endpoint()
+
+        self.assertIn("engine_id", body)
+        self.assertIn("features", body)
+        self.assertGreater(len(body["features"]), 20)
+
     def test_predict_route_accepts_json_body(self):
         predict_route = route_for("/predict")
 

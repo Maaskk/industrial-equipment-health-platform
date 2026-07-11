@@ -54,10 +54,19 @@ def env_flag(name: str, default: bool = False) -> bool:
 def load_model(
     local_model_path: Path | None = None,
     *,
+    model_uri: str | None = None,
     allow_fallback: bool | None = None,
     feature_names: Sequence[str] | None = None,
 ) -> RULModel:
     """Load a real model artifact; only use fallback when explicitly allowed."""
+
+    if model_uri:
+        if not feature_names:
+            raise TypeError("MLflow model loading requires the trained feature schema")
+        import mlflow.sklearn
+
+        model = mlflow.sklearn.load_model(model_uri)
+        return PickleRULModel(model, feature_names)
 
     if local_model_path and local_model_path.exists():
         with local_model_path.open("rb") as file:

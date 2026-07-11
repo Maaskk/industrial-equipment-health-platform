@@ -8,6 +8,8 @@
     "report": "reports/model_metrics/final_evaluation.md"
   },
   "dataset": {
+    "duckdb_path": "cmapss_ingestion.duckdb",
+    "pipeline_source": "duckdb",
     "source": "NASA C-MAPSS Turbofan Engine Degradation Simulation Data Set",
     "test_engines": 707,
     "test_rows_raw": 104897,
@@ -17,7 +19,7 @@
   "feature_count": 89,
   "final_model_type": "HistGradientBoostingRegressor",
   "final_test_engines": 707,
-  "generated_at_utc": "2026-07-10T13:00:09.671044+00:00",
+  "generated_at_utc": "2026-07-11T16:27:39.937945+00:00",
   "group_kfold_cv": [
     {
       "fold": 1,
@@ -51,7 +53,11 @@
     }
   ],
   "mlflow": {
-    "run_id": "dfdf608390c84b3f90c7f6f023099091",
+    "model_uri": "models:/industrial-equipment-health-model@champion",
+    "registered_model_alias": "champion",
+    "registered_model_name": "industrial-equipment-health-model",
+    "registered_model_version": "1",
+    "run_id": "15c9d1d0e9f549a4a2b31d7e3b962f80",
     "tracking_uri": "sqlite:///mlflow.db"
   },
   "models": {
@@ -322,14 +328,14 @@
       "final_engine_count": 707,
       "name": "random_forest_raw",
       "online_metrics": {
-        "mae": 10.152359036796488,
+        "mae": 10.152359036796486,
         "nasa_score": 830332.8366852643,
         "rmse": 15.810157681741835
       },
       "online_rows": 102069,
       "standard_final_cycle_metrics": {
         "mae": 12.727247832909617,
-        "nasa_score": 4813.012327727431,
+        "nasa_score": 4813.0123277274315,
         "rmse": 17.286550220984825
       }
     },
