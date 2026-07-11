@@ -109,7 +109,7 @@ Each member works in their own branch and opens pull requests into `main`.
 
 | Member | GitHub | Branch | Main ownership |
 |---|---|---|---|
-| Ossama | `Maaskk` | `owner/Maaskk` | Hardest role: MLOps integration, MLflow, serving, Docker, CI/CD, monitoring |
+| Ossama | `Maaskk` | `owner/Maaskk` |  MLOps integration, MLflow, serving, Docker, CI/CD, monitoring |
 | Mohamed | `mohamed-kar1` | `feature/mohamed-kar1` | dlt, DuckDB, Dagster, pipeline automation |
 | Hamza | `HamzaElhaddaji` | `feature/HamzaElhaddaji` | data contracts, tests, data lineage, documentation QA |
 | Mouhcine | `Mouhcine005` | `feature/Mouhcine005` | model training, evaluation, feature engineering |
