@@ -33,6 +33,15 @@ This starts:
 - Dagster webserver: http://localhost:3000
 - `training-init`, which downloads NASA C-MAPSS and executes the full Dagster job: dlt, dbt, tests, a genuinely executed training notebook, MLflow registration, and monitoring evidence.
 
+## Vercel Deployment
+
+Import this GitHub repository into Vercel. The Python build hook downloads C-MAPSS,
+creates the DuckDB warehouse, and trains the serving artifact before Vercel packages the
+FastAPI function. `app.py` is the ASGI entrypoint and `vercel.json` keeps generated model
+and warehouse files in the function bundle. Runtime monitoring logs use Vercel's writable
+`/tmp` directory and are therefore ephemeral; durable monitoring remains part of the local
+Docker deployment.
+
 For a direct local Python run:
 
 ```bash

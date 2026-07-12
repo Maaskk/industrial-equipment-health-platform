@@ -22,3 +22,9 @@ exclude = [
   "warehouse",
   "*.ipynb",
 ]
+
+[tool.vercel]
+entrypoint = "app:app"
+
+[tool.vercel.scripts]
+build = "PYTHONPATH=src python scripts/download_data.py && PYTHONPATH=src python orchestration/run_local.py && PYTHONPATH=src python scripts/train_model.py"
