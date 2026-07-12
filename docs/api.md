@@ -58,3 +58,31 @@ Successful response:
 ```
 
 Each prediction is appended to `logs/prediction_logs.jsonl` for monitoring proof.
+
+## Engineering Console API
+
+The web console uses the same service and model as the public prediction contract. It
+does not generate random telemetry or client-side predictions.
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /api/fleet/summary` | Fleet risk counts and aggregate predicted RUL |
+| `GET /api/fleet/engines` | Sortable engine-level predictions at each latest cycle |
+| `GET /api/engines?subset=FD004` | Engines and cycle limits for one subset |
+| `GET /api/engines/{id}/cycles` | Replay boundaries |
+| `GET /api/engines/{id}/cycle/{cycle}` | Historical sensor series through a selected cycle |
+| `POST /api/engines/{id}/cycle/{cycle}/predict` | Real operations/evaluation prediction |
+| `POST /api/predict/batch` | Validate and score uploaded C-MAPSS-style CSV data |
+| `GET /api/model/info` | Model identity and held-out evaluation evidence |
+| `GET /api/platform/status` | DataOps/MLOps artifact evidence |
+| `GET /api/monitoring/summary` | Prediction volume, latency, risk, change, and drift evidence |
+| `POST /api/maintenance/plan` | Maintenance recommendation from a real prediction |
+
+Engine replay requires at least five observed cycles because the trained feature schema
+contains five-cycle rolling statistics and slopes. `mode=operations` never returns
+future truth. `mode=evaluation` may return `actual_rul` and `prediction_error` because
+the C-MAPSS test labels are available for offline assessment.
+
+The 3D turbofan is a locally bundled, interactive Three.js conceptual visualization. It
+is not a physical simulation or certification model; inference remains dataset-backed
+even when WebGL is unavailable.

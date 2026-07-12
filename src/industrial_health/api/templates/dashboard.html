@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="C-MAPSS predictive-maintenance simulation and MLOps operations console">
+  <title>AeroReliability Lab</title>
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+  <header class="app-header">
+    <a class="brand" href="#fleet" aria-label="AeroReliability Lab fleet overview">
+      <span class="brand-mark" aria-hidden="true">AR</span>
+      <span><strong>AeroReliability Lab</strong><small>Industrial Equipment Health Platform</small></span>
+    </a>
+    <nav aria-label="Primary navigation">
+      <a href="#fleet" data-nav="fleet">Fleet</a>
+      <a href="#replay" data-nav="replay">Engine Replay</a>
+      <a href="#lab" data-nav="lab">Prediction Lab</a>
+      <a href="#platform" data-nav="platform">Platform</a>
+      <a href="#docs" data-nav="docs">Documentation</a>
+    </nav>
+    <div class="api-state"><span id="api-dot"></span><span id="api-label">Connecting</span></div>
+  </header>
+  <div class="red-rule"></div>
+
+  <main>
+    <section id="fleet" class="page active" aria-labelledby="fleet-title">
+      <div class="page-head">
+        <div><p class="kicker">C-MAPSS evaluation fleet</p><h1 id="fleet-title">Fleet overview</h1></div>
+        <p class="page-note">Cached predictions from simulated NASA turbofan degradation histories.</p>
+      </div>
+      <div class="metrics" id="fleet-metrics">
+        <article><span>Total engines</span><strong id="metric-total">-</strong></article>
+        <article><span>Low risk</span><strong id="metric-low" class="low">-</strong></article>
+        <article><span>Medium risk</span><strong id="metric-medium" class="medium">-</strong></article>
+        <article><span>High risk</span><strong id="metric-high" class="high">-</strong></article>
+        <article><span>Median predicted RUL</span><strong id="metric-rul">-</strong></article>
+        <article><span>Pipeline</span><strong id="metric-pipeline">-</strong></article>
+      </div>
+      <div class="toolbar">
+        <label>Search<input id="fleet-search" type="search" placeholder="FD004_204"></label>
+        <label>Subset<select id="fleet-subset"><option value="">All subsets</option><option>FD001</option><option>FD002</option><option>FD003</option><option>FD004</option></select></label>
+        <label>Risk<select id="fleet-risk"><option value="">All risks</option><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></label>
+        <label>Sort<select id="fleet-sort"><option value="rul">Lowest RUL</option><option value="engine">Engine ID</option><option value="cycle">Latest cycle</option></select></label>
+        <button id="fleet-export" class="button secondary" type="button">Export CSV</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Engine</th><th>Subset</th><th>Latest cycle</th><th>Predicted RUL</th><th>Risk</th><th>Recommendation</th><th></th></tr></thead>
+          <tbody id="fleet-rows"><tr><td colspan="7" class="empty">Loading fleet predictions...</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="replay" class="page" aria-labelledby="replay-title">
+      <div class="page-head">
+        <div><p class="kicker">Dataset replay</p><h1 id="replay-title">Engine degradation replay</h1></div>
+        <p class="page-note">Representative C-MAPSS simulation history, not live equipment telemetry.</p>
+      </div>
+      <div class="replay-status">
+        <label>Subset<select id="replay-subset"><option>FD001</option><option>FD002</option><option>FD003</option><option selected>FD004</option></select></label>
+        <label>Engine<select id="replay-engine"></select></label>
+        <div><span>Cycle</span><strong id="replay-cycle-label">-</strong></div>
+        <div><span>Predicted RUL</span><strong id="replay-rul">-</strong></div>
+        <div><span>Risk</span><strong id="replay-risk">-</strong></div>
+      </div>
+      <div class="mode-switch" role="group" aria-label="Replay information mode">
+        <button class="active" data-mode="operations" type="button">Operations mode</button>
+        <button data-mode="evaluation" type="button">Evaluation mode</button>
+        <span id="mode-note">Future truth is hidden.</span>
+      </div>
+      <div class="replay-grid">
+        <article class="card viewer-card">
+          <div class="card-head"><h2>Conceptual digital twin</h2><span>Generic sensor channels</span></div>
+          <div id="engine-viewer" aria-label="Interactive conceptual 3D turbofan engine"></div>
+          <div class="hotspot-legend" aria-label="Current generic sensor values">
+            <div><span>S2 intake marker</span><strong id="hotspot-s2">-</strong></div>
+            <div><span>S3 core marker</span><strong id="hotspot-s3">-</strong></div>
+            <div><span>S11 exhaust marker</span><strong id="hotspot-s11">-</strong></div>
+          </div>
+          <div class="viewer-actions">
+            <button id="camera-reset" class="icon-button" type="button" title="Reset camera">Reset view</button>
+            <button id="explode-toggle" class="icon-button" type="button" title="Toggle exploded view">Explode</button>
+          </div>
+          <p class="honesty">Visual condition is conceptual and does not claim physically validated fault localization.</p>
+        </article>
+        <article class="card chart-card">
+          <div class="card-head"><h2>Sensor history by cycle</h2><span id="chart-mode-label">Raw values</span></div>
+          <div class="sensor-controls">
+            <label><input type="checkbox" name="sensor" value="sensor_2" checked> S2</label>
+            <label><input type="checkbox" name="sensor" value="sensor_3" checked> S3</label>
+            <label><input type="checkbox" name="sensor" value="sensor_11" checked> S11</label>
+            <label>Display<select id="chart-display"><option value="raw">Raw</option><option value="normalized">Normalized</option></select></label>
+          </div>
+          <canvas id="sensor-chart" width="800" height="330" aria-label="Selected sensor measurements over engine cycles"></canvas>
+          <div class="prediction-panel">
+            <div><span>Recommendation</span><strong id="replay-recommendation">Select a cycle</strong></div>
+            <div><span>Response latency</span><strong id="replay-latency">-</strong></div>
+            <div id="truth-panel" hidden><span>Actual RUL / Error</span><strong id="replay-truth">-</strong></div>
+          </div>
+        </article>
+      </div>
+      <div class="replay-controls">
+        <button id="previous-cycle" class="button secondary" type="button" aria-label="Previous cycle">Previous</button>
+        <button id="play-replay" class="button" type="button">Play</button>
+        <button id="next-cycle" class="button secondary" type="button" aria-label="Next cycle">Next</button>
+        <label class="cycle-slider">Cycle<input id="cycle-slider" type="range" min="5" max="100" value="5"></label>
+        <label>Speed<select id="replay-speed"><option value="2000">0.5x</option><option value="1000" selected>1x</option><option value="500">2x</option><option value="200">5x</option></select></label>
+        <label class="check"><input id="pause-risk" type="checkbox"> Pause on risk change</label>
+      </div>
+      <div id="replay-error" class="error" role="alert"></div>
+    </section>
+
+    <section id="lab" class="page" aria-labelledby="lab-title">
+      <div class="page-head"><div><p class="kicker">Controlled scoring</p><h1 id="lab-title">Prediction lab</h1></div><p class="page-note">Raw histories are transformed into the trained feature contract server-side.</p></div>
+      <div class="lab-grid">
+        <article class="card">
+          <div class="card-head"><h2>Dataset prediction</h2><span>DuckDB history</span></div>
+          <div class="form-stack">
+            <label>Engine<select id="lab-engine"></select></label>
+            <label>Cycle<input id="lab-cycle" type="number" min="5"></label>
+            <button id="lab-predict" class="button" type="button">Run prediction</button>
+          </div>
+          <div id="lab-result" class="result-block empty">Choose an engine and cycle.</div>
+        </article>
+        <article class="card">
+          <div class="card-head"><h2>CSV batch scoring</h2><span>Five consecutive cycles minimum</span></div>
+          <label class="upload">Raw C-MAPSS-format CSV<input id="csv-file" type="file" accept=".csv,text/csv"></label>
+          <p class="fine">Required: engine_id, cycle, setting_1-3 and sensor_1-21.</p>
+          <button id="batch-score" class="button" type="button">Validate and score</button>
+          <button id="batch-download" class="button secondary" type="button" disabled>Download results</button>
+          <div id="batch-result" class="result-block empty">No file selected.</div>
+        </article>
+        <article class="card">
+          <div class="card-head"><h2>Maintenance planner</h2><span>Utilization-based estimate</span></div>
+          <div class="form-stack">
+            <label>Predicted RUL<input id="plan-rul" type="number" min="0" value="38"></label>
+            <label>Average cycles per day<input id="plan-rate" type="number" min="0.1" step="0.1" value="3"></label>
+            <label>Safety margin (cycles)<input id="plan-margin" type="number" min="0" value="8"></label>
+            <button id="plan-service" class="button" type="button">Calculate service window</button>
+          </div>
+          <div id="plan-result" class="result-block empty">Calendar estimates depend on your utilization rate.</div>
+        </article>
+      </div>
+    </section>
+
+    <section id="platform" class="page" aria-labelledby="platform-title">
+      <div class="page-head"><div><p class="kicker">Verified evidence</p><h1 id="platform-title">Platform and monitoring</h1></div><p class="page-note">Values are read from DuckDB, saved training evidence and prediction logs.</p></div>
+      <div class="tabs" role="tablist">
+        <button class="active" data-tab="pipeline" type="button">Pipeline</button>
+        <button data-tab="model" type="button">Model</button>
+        <button data-tab="monitoring" type="button">Monitoring</button>
+      </div>
+      <div id="pipeline-tab" class="tab-panel active"><div id="pipeline-steps" class="pipeline"></div></div>
+      <div id="model-tab" class="tab-panel"><div id="model-info" class="detail-grid"></div></div>
+      <div id="monitoring-tab" class="tab-panel"><div id="monitoring-info" class="detail-grid"></div><div id="monitoring-log" class="table-wrap"></div></div>
+    </section>
+
+    <section id="docs" class="page" aria-labelledby="docs-title">
+      <div class="page-head"><div><p class="kicker">Project guide</p><h1 id="docs-title">Documentation</h1></div></div>
+      <div class="docs-grid">
+        <article class="card"><h2>Honest scope</h2><p>NASA C-MAPSS is a simulated turbofan degradation dataset. This application replays historical simulation cycles; it does not receive a live NASA stream.</p></article>
+        <article class="card"><h2>Operations vs evaluation</h2><p>Operations mode uses only past and current observations. Evaluation mode reveals test labels solely for offline comparison and is never presented as deployable truth.</p></article>
+        <article class="card"><h2>CI experiment scope</h2><p>CI exercises the complete pipeline with FD001 for practical runtime. The saved final evaluation uses FD001-FD004.</p></article>
+        <article class="card"><h2>Monitoring limitation</h2><p>Monitoring is a course-level predicted-RUL mean-shift indicator. It is not full feature or concept-drift detection.</p></article>
+      </div>
+      <div class="link-row"><a href="/docs">OpenAPI</a><a href="http://localhost:5000">MLflow</a><a href="http://localhost:3000">Dagster</a><a href="https://github.com/Maaskk/industrial-equipment-health-platform">GitHub</a></div>
+    </section>
+  </main>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="/static/js/app.js"></script>
+</body>
+</html>

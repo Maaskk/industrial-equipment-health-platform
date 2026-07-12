@@ -54,6 +54,13 @@ curl -X POST http://localhost:8000/predict \
   --data @demo/predict_sample.json
 ```
 
+The dashboard is an engineering console, not a live-aircraft display. It replays the
+NASA C-MAPSS test trajectories stored in DuckDB and performs real server-side feature
+engineering and model inference. Its five views cover fleet triage, cycle-by-cycle
+engine replay, single/batch prediction, platform evidence, and project documentation.
+Operations mode deliberately hides future ground truth; Evaluation mode exposes actual
+RUL and prediction error for academic validation.
+
 ## Final Training Proof
 
 The final notebook was executed by a real Jupyter kernel and used the dbt/DuckDB output for all NASA C-MAPSS subsets FD001-FD004:
@@ -133,6 +140,8 @@ Detailed task files are in [`team/`](team/).
 - FastAPI service exposing:
   - `GET /health`
   - `POST /predict`
+  - dataset-backed fleet, replay, batch scoring, model, monitoring, and maintenance
+    endpoints under `/api`
 - Docker containerization.
 - GitHub Actions CI/CD. The active workflow is stored in [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 - Monitoring for service health, latency, ML metrics, and drift.
