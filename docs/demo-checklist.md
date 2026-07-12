@@ -21,7 +21,8 @@ Owner: `Maaskk`
 5. Start the full stack with one Docker Compose command.
 6. Open Fleet Overview and identify it as a C-MAPSS dataset replay, not live telemetry.
 7. Filter the fleet and open an engine in Engine Replay.
-8. Play cycles, change sensors, rotate the conceptual engine, and show risk changes.
+8. Play cycles, change sensors, orbit the cutaway engine, focus components, use the
+   exploded view, and show risk-linked lighting changes.
 9. Compare Operations mode (truth hidden) with Evaluation mode (truth/error shown).
 10. Run one prediction in Prediction Lab and score a small CSV batch.
 11. Open Platform to show pipeline counts, model metrics, latency, logs, and drift state.

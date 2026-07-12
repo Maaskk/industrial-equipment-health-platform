@@ -19,6 +19,8 @@ class MaaskkApiAppTests(unittest.TestCase):
 
         self.assertIn("AeroReliability Lab", body)
         self.assertIn("Engine degradation replay", body)
+        self.assertIn("Turbofan degradation twin", body)
+        self.assertIn("Interactive engine observatory", body)
 
     def test_demo_payload_matches_model_contract(self):
         body = route_for("/demo-payload").endpoint()

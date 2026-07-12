@@ -61,6 +61,13 @@ engine replay, single/batch prediction, platform evidence, and project documenta
 Operations mode deliberately hides future ground truth; Evaluation mode exposes actual
 RUL and prediction error for academic validation.
 
+Engine Replay includes a locally bundled Three.js cutaway turbofan observatory. Its fan,
+compressor, combustor, turbine, exhaust, airflow particles, sensor beacons, risk lighting,
+camera focus, and exploded view respond to the selected dataset cycle. These are
+explanatory visual mappings, not a physically validated engine simulation.
+
+![Engine degradation observatory](docs/screenshots/engine-observatory.png)
+
 ## Final Training Proof
 
 The final notebook was executed by a real Jupyter kernel and used the dbt/DuckDB output for all NASA C-MAPSS subsets FD001-FD004:

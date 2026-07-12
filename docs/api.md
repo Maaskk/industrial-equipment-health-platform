@@ -83,6 +83,7 @@ contains five-cycle rolling statistics and slopes. `mode=operations` never retur
 future truth. `mode=evaluation` may return `actual_rul` and `prediction_error` because
 the C-MAPSS test labels are available for offline assessment.
 
-The 3D turbofan is a locally bundled, interactive Three.js conceptual visualization. It
-is not a physical simulation or certification model; inference remains dataset-backed
-even when WebGL is unavailable.
+The 3D turbofan is a locally bundled, interactive Three.js cutaway visualization. It
+provides component focus controls, an exploded view, animated airflow and rotating stages,
+sensor beacons, and risk-linked lighting. It is not a physical simulation or certification
+model; inference remains dataset-backed even when WebGL is unavailable.

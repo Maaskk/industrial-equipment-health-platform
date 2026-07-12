@@ -70,21 +70,46 @@
         <button data-mode="evaluation" type="button">Evaluation mode</button>
         <span id="mode-note">Future truth is hidden.</span>
       </div>
-      <div class="replay-grid">
-        <article class="card viewer-card">
-          <div class="card-head"><h2>Conceptual digital twin</h2><span>Generic sensor channels</span></div>
-          <div id="engine-viewer" aria-label="Interactive conceptual 3D turbofan engine"></div>
-          <div class="hotspot-legend" aria-label="Current generic sensor values">
-            <div><span>S2 intake marker</span><strong id="hotspot-s2">-</strong></div>
-            <div><span>S3 core marker</span><strong id="hotspot-s3">-</strong></div>
-            <div><span>S11 exhaust marker</span><strong id="hotspot-s11">-</strong></div>
+      <section class="twin-shell" aria-labelledby="twin-title">
+        <div class="twin-head">
+          <div><span>Interactive engine observatory</span><h2 id="twin-title">Turbofan degradation twin</h2></div>
+          <div class="scene-status"><span class="pulse-dot"></span><strong id="scene-status">DATASET LINKED</strong><span id="scene-cycle">CYCLE --</span></div>
+        </div>
+        <div class="twin-stage">
+          <div id="engine-viewer" aria-label="Interactive conceptual 3D cutaway turbofan engine"></div>
+          <div class="stage-label"><span>CMAPSS / ENGINE OBSERVATORY</span><strong id="stage-engine">FD004_204</strong><small>DRAG TO ORBIT · SCROLL TO ZOOM</small></div>
+          <div class="stage-risk"><span>MODEL CONDITION</span><strong id="stage-risk">--</strong><small id="stage-rul">-- CYCLES RUL</small></div>
+          <div class="component-nav" role="group" aria-label="Focus engine component">
+            <button class="active" data-component="overview" type="button">Overview</button>
+            <button data-component="fan" type="button">Fan</button>
+            <button data-component="compressor" type="button">Compressor</button>
+            <button data-component="combustor" type="button">Combustor</button>
+            <button data-component="turbine" type="button">Turbine</button>
+            <button data-component="exhaust" type="button">Exhaust</button>
           </div>
           <div class="viewer-actions">
-            <button id="camera-reset" class="icon-button" type="button" title="Reset camera">Reset view</button>
-            <button id="explode-toggle" class="icon-button" type="button" title="Toggle exploded view">Explode</button>
+            <button id="camera-reset" class="stage-button" type="button" title="Reset camera">Reset view</button>
+            <button id="explode-toggle" class="stage-button" type="button" title="Toggle exploded view">Exploded view</button>
+            <button id="airflow-toggle" class="stage-button active" type="button" title="Toggle airflow particles">Airflow</button>
           </div>
-          <p class="honesty">Visual condition is conceptual and does not claim physically validated fault localization.</p>
-        </article>
+        </div>
+        <div class="hotspot-legend" aria-label="Current generic sensor values">
+          <div><i class="sensor-dot intake"></i><span>S2 intake marker</span><strong id="hotspot-s2">-</strong></div>
+          <div><i class="sensor-dot core"></i><span>S3 core marker</span><strong id="hotspot-s3">-</strong></div>
+          <div><i class="sensor-dot exhaust"></i><span>S11 exhaust marker</span><strong id="hotspot-s11">-</strong></div>
+          <div><span>Visual state</span><strong id="visual-condition">Awaiting replay</strong></div>
+        </div>
+        <p class="honesty">The cutaway, airflow, heat and component coloring are explanatory mappings of dataset/model state. They are not a physically validated fault simulation.</p>
+      </section>
+      <div class="replay-controls">
+        <button id="previous-cycle" class="button secondary" type="button" aria-label="Previous cycle">Previous</button>
+        <button id="play-replay" class="button" type="button">Play</button>
+        <button id="next-cycle" class="button secondary" type="button" aria-label="Next cycle">Next</button>
+        <label class="cycle-slider">Cycle<input id="cycle-slider" type="range" min="5" max="100" value="5"></label>
+        <label>Speed<select id="replay-speed"><option value="2000">0.5x</option><option value="1000" selected>1x</option><option value="500">2x</option><option value="200">5x</option></select></label>
+        <label class="check"><input id="pause-risk" type="checkbox"> Pause on risk change</label>
+      </div>
+      <div class="analytics-grid">
         <article class="card chart-card">
           <div class="card-head"><h2>Sensor history by cycle</h2><span id="chart-mode-label">Raw values</span></div>
           <div class="sensor-controls">
@@ -100,14 +125,12 @@
             <div id="truth-panel" hidden><span>Actual RUL / Error</span><strong id="replay-truth">-</strong></div>
           </div>
         </article>
-      </div>
-      <div class="replay-controls">
-        <button id="previous-cycle" class="button secondary" type="button" aria-label="Previous cycle">Previous</button>
-        <button id="play-replay" class="button" type="button">Play</button>
-        <button id="next-cycle" class="button secondary" type="button" aria-label="Next cycle">Next</button>
-        <label class="cycle-slider">Cycle<input id="cycle-slider" type="range" min="5" max="100" value="5"></label>
-        <label>Speed<select id="replay-speed"><option value="2000">0.5x</option><option value="1000" selected>1x</option><option value="500">2x</option><option value="200">5x</option></select></label>
-        <label class="check"><input id="pause-risk" type="checkbox"> Pause on risk change</label>
+        <aside class="condition-rail">
+          <div><span>Decision</span><strong id="rail-recommendation">Awaiting prediction</strong></div>
+          <div><span>Replay source</span><strong>C-MAPSS test trajectory</strong></div>
+          <div><span>Feature window</span><strong>5 consecutive cycles</strong></div>
+          <div><span>Inference</span><strong>Server-side · 89 features</strong></div>
+        </aside>
       </div>
       <div id="replay-error" class="error" role="alert"></div>
     </section>

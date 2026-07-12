@@ -210,6 +210,12 @@ async function updateReplay() {
     text("hotspot-s2", prediction.sensor_profile?.sensor_2 ?? "-");
     text("hotspot-s3", prediction.sensor_profile?.sensor_3 ?? "-");
     text("hotspot-s11", prediction.sensor_profile?.sensor_11 ?? "-");
+    text("stage-engine", prediction.engine_id);
+    text("scene-cycle", `CYCLE ${prediction.cycle} / ${state.latestCycle}`);
+    text("stage-risk", prediction.risk_level.toUpperCase());
+    text("stage-rul", `${Number(prediction.remaining_useful_life).toFixed(1)} CYCLES RUL`);
+    text("visual-condition", `${prediction.risk_level.toUpperCase()} · ${prediction.recommendation}`);
+    text("rail-recommendation", prediction.recommendation);
     if ($("pause-risk").checked && state.lastRisk && state.lastRisk !== prediction.risk_level) stopReplay();
     state.lastRisk = prediction.risk_level;
   } catch (error) {
@@ -363,40 +369,142 @@ function download(filename, content) {
 }
 
 const viewer = {
-  initialised: false, unavailable: false, exploded: false, playing: false, angle: 0,
+  initialised: false, unavailable: false, exploded: false, playing: false, airflowVisible: true,
   init() {
     const container = $("engine-viewer");
-    this.scene = new THREE.Scene(); this.scene.background = new THREE.Color(0xf0f1ef);
-    this.camera = new THREE.PerspectiveCamera(36, container.clientWidth / container.clientHeight, .1, 100);
-    this.camera.position.set(7, 4, 8);
-    this.renderer = new THREE.WebGLRenderer({antialias:true});
-    this.renderer.setPixelRatio(Math.min(2, window.devicePixelRatio)); this.renderer.setSize(container.clientWidth, container.clientHeight); container.appendChild(this.renderer.domElement);
-    this.group = new THREE.Group(); this.scene.add(this.group);
-    const metal = new THREE.MeshStandardMaterial({color:0xbac0c3, roughness:.45, metalness:.65});
-    const dark = new THREE.MeshStandardMaterial({color:0x233646, roughness:.35, metalness:.7});
-    const red = new THREE.MeshStandardMaterial({color:0xe23b2e, roughness:.5});
-    const cylinders = [[2.8,1.2,metal,-1.2],[2.4,.92,dark,.8],[1.6,.64,metal,2.6]];
-    this.parts = cylinders.map(([length,radius,material,x]) => {
-      const mesh = new THREE.Mesh(new THREE.CylinderGeometry(radius,radius*.88,length,48,1,true),material);
-      mesh.rotation.z = Math.PI/2; mesh.position.x=x; this.group.add(mesh); return mesh;
+    if (!window.WebGLRenderingContext) throw new Error("WebGL is unavailable");
+    this.scene = new THREE.Scene();
+    this.scene.background = new THREE.Color(0x030912);
+    this.scene.fog = new THREE.FogExp2(0x030912, .035);
+    this.camera = new THREE.PerspectiveCamera(34, container.clientWidth / container.clientHeight, .1, 100);
+    this.camera.position.set(8.5, 3.4, 10.5);
+    this.camera.lookAt(0, 0, 0);
+    this.renderer = new THREE.WebGLRenderer({antialias:true, powerPreference:"high-performance"});
+    this.renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
+    this.renderer.setSize(container.clientWidth, container.clientHeight);
+    this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.25;
+    container.replaceChildren(this.renderer.domElement);
+
+    this.group = new THREE.Group();
+    this.group.rotation.set(.05, -.2, 0);
+    this.scene.add(this.group);
+    this.componentGroups = {};
+    this.explodable = [];
+    this.rotors = [];
+
+    const metal = new THREE.MeshStandardMaterial({color:0x9eabb7, roughness:.28, metalness:.88});
+    const titanium = new THREE.MeshStandardMaterial({color:0x526577, roughness:.34, metalness:.82});
+    const dark = new THREE.MeshStandardMaterial({color:0x17293c, roughness:.25, metalness:.78});
+    const edge = new THREE.MeshStandardMaterial({color:0xd9e5ef, roughness:.2, metalness:.9});
+    const copper = new THREE.MeshStandardMaterial({color:0xd4853b, roughness:.3, metalness:.65, emissive:0x4b1600});
+    const hot = new THREE.MeshStandardMaterial({color:0xff4b36, roughness:.35, metalness:.35, emissive:0x7a1008, emissiveIntensity:.9});
+    const shell = new THREE.MeshPhysicalMaterial({color:0x6c8193, roughness:.2, metalness:.75, transparent:true, opacity:.22, side:THREE.DoubleSide, depthWrite:false});
+    this.riskMaterial = new THREE.MeshStandardMaterial({color:0x55d6a0, emissive:0x0b5e43, emissiveIntensity:1.2, roughness:.3});
+
+    const cylinder = (length, radiusA, radiusB, material, x, open = false) => {
+      const mesh = new THREE.Mesh(new THREE.CylinderGeometry(radiusA, radiusB, length, 64, 1, open), material);
+      mesh.rotation.z = Math.PI / 2; mesh.position.x = x; return mesh;
+    };
+    const ring = (radius, tube, material, x) => {
+      const mesh = new THREE.Mesh(new THREE.TorusGeometry(radius, tube, 14, 72), material);
+      mesh.rotation.y = Math.PI / 2; mesh.position.x = x; return mesh;
+    };
+    const stage = (name, x, radius, bladeCount, material) => {
+      const group = new THREE.Group(); group.position.x = x; group.userData.homeX = x;
+      group.add(ring(radius, .035, edge, 0));
+      const hub = cylinder(.16, .22, .22, dark, 0); group.add(hub);
+      for (let index=0; index<bladeCount; index+=1) {
+        const blade = new THREE.Mesh(new THREE.BoxGeometry(.07, radius*.72, .11), material);
+        blade.position.y = radius*.48; blade.rotation.x = index * Math.PI * 2 / bladeCount;
+        group.add(blade);
+      }
+      this.group.add(group); this.rotors.push(group); this.explodable.push(group); this.componentGroups[name] = group;
+      return group;
+    };
+
+    const shaft = cylinder(7.2, .075, .075, edge, 0); this.group.add(shaft);
+    const fanGroup = new THREE.Group(); fanGroup.position.x=-3.2; fanGroup.userData.homeX=-3.2;
+    fanGroup.add(cylinder(.5,.32,.22,titanium,0));
+    for(let index=0;index<22;index+=1){
+      const blade=new THREE.Mesh(new THREE.BoxGeometry(.11,1.15,.15),metal);
+      blade.position.y=.68; blade.rotation.x=index*Math.PI*2/22; blade.rotation.z=-.12; fanGroup.add(blade);
+    }
+    fanGroup.add(ring(1.22,.07,edge,-.2)); this.group.add(fanGroup); this.rotors.push(fanGroup); this.explodable.push(fanGroup); this.componentGroups.fan=fanGroup;
+
+    const intakeGroup=new THREE.Group(); intakeGroup.position.x=-3.85; intakeGroup.userData.homeX=-3.85;
+    intakeGroup.add(ring(1.42,.14,edge,0)); intakeGroup.add(cylinder(1.2,1.42,1.28,shell,.5,true));
+    this.group.add(intakeGroup); this.explodable.push(intakeGroup);
+
+    const compressorGroup=new THREE.Group(); compressorGroup.userData.homeX=0;
+    [-2.35,-1.9,-1.45,-1.02,-.62].forEach((x,index)=>compressorGroup.add(stage(`compressor-${index}`,x,.94-index*.07,18,titanium)));
+    compressorGroup.add(cylinder(2.25,1.05,.73,shell,-1.48,true)); this.group.add(compressorGroup); this.componentGroups.compressor=compressorGroup;
+
+    const combustorGroup=new THREE.Group(); combustorGroup.position.x=.05; combustorGroup.userData.homeX=.05;
+    combustorGroup.add(cylinder(1.15,.72,.72,shell,0,true));
+    for(let index=0;index<10;index+=1){const can=cylinder(.72,.1,.1,copper,0);const angle=index*Math.PI*2/10;can.position.y=Math.cos(angle)*.53;can.position.z=Math.sin(angle)*.53;combustorGroup.add(can);}
+    combustorGroup.add(ring(.73,.05,hot,-.48)); combustorGroup.add(ring(.73,.05,hot,.48));
+    this.group.add(combustorGroup); this.explodable.push(combustorGroup); this.componentGroups.combustor=combustorGroup;
+
+    const turbineGroup=new THREE.Group(); turbineGroup.userData.homeX=0;
+    [1.0,1.42,1.82].forEach((x,index)=>turbineGroup.add(stage(`turbine-${index}`,x,.67-index*.08,16,index===0?hot:titanium)));
+    turbineGroup.add(cylinder(1.45,.75,.57,shell,1.4,true)); this.group.add(turbineGroup); this.componentGroups.turbine=turbineGroup;
+
+    const exhaustGroup=new THREE.Group(); exhaustGroup.position.x=2.75; exhaustGroup.userData.homeX=2.75;
+    exhaustGroup.add(cylinder(1.65,.58,.9,titanium,0,true)); exhaustGroup.add(ring(.88,.07,edge,.8));
+    exhaustGroup.add(cylinder(1.3,.18,.5,dark,.25)); this.group.add(exhaustGroup); this.explodable.push(exhaustGroup); this.componentGroups.exhaust=exhaustGroup;
+
+    const pylons=[-.35,.35]; pylons.forEach(z=>{const p=new THREE.Mesh(new THREE.BoxGeometry(2.4,.13,.12),dark);p.position.set(-1.2,1.12,z);this.group.add(p);});
+    this.outerShell=cylinder(5.9,1.31,.9,shell,-.7,true); this.outerShell.rotation.z=Math.PI/2; this.group.add(this.outerShell);
+
+    this.hotspots=[];
+    [[-3.35,1.45,.15,"sensor_2",0x64b5ff],[-.2,1.03,.2,"sensor_3",0xffb44c],[2.55,.9,.15,"sensor_11",0xff5f55]].forEach(([x,y,z,sensor,color])=>{
+      const holder=new THREE.Group();holder.position.set(x,y,z);
+      const dot=new THREE.Mesh(new THREE.SphereGeometry(.095,20,20),new THREE.MeshStandardMaterial({color,emissive:color,emissiveIntensity:1.7}));
+      const halo=ring(.18,.015,new THREE.MeshBasicMaterial({color,transparent:true,opacity:.75}),0);halo.rotation.set(0,0,0);
+      holder.add(dot);holder.add(halo);holder.userData={sensor,dot,halo,value:null};this.group.add(holder);this.hotspots.push(holder);
     });
-    const intake = new THREE.Mesh(new THREE.TorusGeometry(1.22,.12,16,64), red); intake.rotation.y=Math.PI/2; intake.position.x=-2.65; this.group.add(intake);
-    this.rotor = new THREE.Group(); this.rotor.position.x=-2.55; this.group.add(this.rotor);
-    for(let index=0;index<12;index+=1){const blade=new THREE.Mesh(new THREE.BoxGeometry(.08,.95,.18),dark);blade.position.y=.48;blade.rotation.x=index*Math.PI/6;this.rotor.add(blade);}
-    this.hotspots = []; [[-1.5,.95,0],[.5,.76,0],[2.2,.52,0]].forEach((position,index)=>{const dot=new THREE.Mesh(new THREE.SphereGeometry(.11,16,16),red.clone());dot.position.set(...position);dot.userData.sensor=`sensor_${[2,3,11][index]}`;this.group.add(dot);this.hotspots.push(dot);});
-    this.scene.add(new THREE.HemisphereLight(0xffffff,0x445566,2.2)); const key=new THREE.DirectionalLight(0xffffff,3);key.position.set(4,7,5);this.scene.add(key);
-    this.drag={active:false,x:0,y:0}; container.addEventListener("pointerdown",(event)=>{this.drag={active:true,x:event.clientX,y:event.clientY};}); window.addEventListener("pointerup",()=>{this.drag.active=false;}); window.addEventListener("pointermove",(event)=>{if(!this.drag.active)return;this.group.rotation.y+=(event.clientX-this.drag.x)*.008;this.group.rotation.x+=(event.clientY-this.drag.y)*.006;this.drag.x=event.clientX;this.drag.y=event.clientY;}); container.addEventListener("wheel",(event)=>{event.preventDefault();this.camera.position.z=Math.max(5,Math.min(14,this.camera.position.z+event.deltaY*.008));},{passive:false});
+
+    const airflowCount=260; const positions=new Float32Array(airflowCount*3);
+    for(let index=0;index<airflowCount;index+=1){positions[index*3]=-5+Math.random()*10;const angle=Math.random()*Math.PI*2;const radius=.15+Math.random()*.78;positions[index*3+1]=Math.cos(angle)*radius;positions[index*3+2]=Math.sin(angle)*radius;}
+    const airflowGeometry=new THREE.BufferGeometry();airflowGeometry.setAttribute("position",new THREE.BufferAttribute(positions,3));
+    this.airflow=new THREE.Points(airflowGeometry,new THREE.PointsMaterial({color:0x65bfff,size:.035,transparent:true,opacity:.78,depthWrite:false,blending:THREE.AdditiveBlending}));this.group.add(this.airflow);
+
+    const stars=new Float32Array(900);for(let index=0;index<300;index+=1){stars[index*3]=(Math.random()-.5)*24;stars[index*3+1]=(Math.random()-.5)*12;stars[index*3+2]=-4-Math.random()*10;}
+    const starsGeometry=new THREE.BufferGeometry();starsGeometry.setAttribute("position",new THREE.BufferAttribute(stars,3));this.scene.add(new THREE.Points(starsGeometry,new THREE.PointsMaterial({color:0x527ca3,size:.018,transparent:true,opacity:.55})));
+    const grid=new THREE.GridHelper(22,44,0x24415e,0x13273c);grid.position.y=-1.55;this.scene.add(grid);
+    this.scene.add(new THREE.HemisphereLight(0xbad9ff,0x07101c,2.4));
+    const key=new THREE.DirectionalLight(0xffffff,5);key.position.set(-4,7,8);this.scene.add(key);
+    const rim=new THREE.PointLight(0x4ca7ff,26,18);rim.position.set(-3,1,4);this.scene.add(rim);
+    this.riskLight=new THREE.PointLight(0x55d6a0,20,12);this.riskLight.position.set(2,0,3);this.scene.add(this.riskLight);
+
+    this.drag={active:false,x:0,y:0};
+    container.addEventListener("pointerdown",event=>{this.drag={active:true,x:event.clientX,y:event.clientY};container.setPointerCapture?.(event.pointerId);});
+    window.addEventListener("pointerup",()=>{this.drag.active=false;});
+    window.addEventListener("pointermove",event=>{if(!this.drag.active)return;this.group.rotation.y+=(event.clientX-this.drag.x)*.006;this.group.rotation.x=Math.max(-.6,Math.min(.6,this.group.rotation.x+(event.clientY-this.drag.y)*.004));this.drag.x=event.clientX;this.drag.y=event.clientY;});
+    container.addEventListener("wheel",event=>{event.preventDefault();const direction=this.camera.position.clone().normalize();this.camera.position.addScaledVector(direction,event.deltaY*.008);const distance=this.camera.position.length();if(distance<6)this.camera.position.setLength(6);if(distance>18)this.camera.position.setLength(18);this.camera.lookAt(this.focusTarget||new THREE.Vector3());},{passive:false});
     new ResizeObserver(()=>{const width=container.clientWidth,height=container.clientHeight;this.camera.aspect=width/height;this.camera.updateProjectionMatrix();this.renderer.setSize(width,height);}).observe(container);
-    this.initialised=true; this.animate();
+    this.focusTarget=new THREE.Vector3(0,0,0); this.initialised=true; this.animate();
   },
-  animate(){requestAnimationFrame(()=>this.animate());if(this.playing)this.rotor.rotation.x+=.025;this.renderer.render(this.scene,this.camera);},
-  reset(){this.camera.position.set(7,4,8);this.group.rotation.set(0,0,0);},
-  explode(){this.exploded=!this.exploded;this.parts.forEach((part,index)=>{part.position.x+=this.exploded?index*.55:-index*.55;});},
-  setPlaying(value){this.playing=value;},
-  setRisk(risk){const color={low:0x15805c,medium:0xc77a00,high:0xc92020}[risk]||0x626262;this.hotspots.forEach((dot)=>dot.material.color.setHex(color));},
-  setSensorValues(values){this.hotspots.forEach((dot)=>{dot.userData.value=values[dot.userData.sensor];});},
+  animate(){
+    requestAnimationFrame(()=>this.animate());
+    const speed=this.playing?.045:.006;this.rotors.forEach((rotor,index)=>{rotor.rotation.x+=speed*(1+index*.08);});
+    if(this.airflowVisible){const positions=this.airflow.geometry.attributes.position.array;for(let index=0;index<positions.length;index+=3){positions[index]+=(this.playing?.075:.018);if(positions[index]>5)positions[index]=-5;}this.airflow.geometry.attributes.position.needsUpdate=true;}
+    const pulse=1+Math.sin(Date.now()*.004)*.12;this.hotspots.forEach(marker=>marker.userData.halo.scale.setScalar(pulse));
+    this.renderer.render(this.scene,this.camera);
+  },
+  reset(){this.focusTarget.set(0,0,0);this.camera.position.set(8.5,3.4,10.5);this.camera.lookAt(this.focusTarget);this.group.rotation.set(.05,-.2,0);qsa("[data-component]").forEach(button=>button.classList.toggle("active",button.dataset.component==="overview"));},
+  focus(name){const targets={overview:[0,0,0,8.5,3.4,10.5],fan:[-3.15,0,0,2.5,1.2,6],compressor:[-1.45,0,0,4.6,2.2,7],combustor:[.05,0,0,5.8,2.1,6.4],turbine:[1.4,0,0,6.5,2,6],exhaust:[2.8,0,0,7.5,1.8,5.4]};const values=targets[name]||targets.overview;this.focusTarget.set(values[0],values[1],values[2]);this.camera.position.set(values[3],values[4],values[5]);this.camera.lookAt(this.focusTarget);},
+  explode(){this.exploded=!this.exploded;this.explodable.forEach((part,index)=>{const direction=index-(this.explodable.length-1)/2;part.position.x=part.userData.homeX+(this.exploded?direction*.28:0);});text("explode-toggle",this.exploded?"Assembled view":"Exploded view");},
+  toggleAirflow(){this.airflowVisible=!this.airflowVisible;this.airflow.visible=this.airflowVisible;$("airflow-toggle").classList.toggle("active",this.airflowVisible);},
+  setPlaying(value){this.playing=value;text("scene-status",value?"REPLAY RUNNING":"DATASET LINKED");},
+  setRisk(risk){const color={low:0x55d6a0,medium:0xffb44c,high:0xff4b42}[risk]||0x668099;this.riskLight.color.setHex(color);this.riskMaterial.color.setHex(color);this.hotspots.forEach(marker=>{marker.userData.dot.material.color.setHex(color);marker.userData.dot.material.emissive.setHex(color);});},
+  setSensorValues(values){this.hotspots.forEach(marker=>{const value=Number(values[marker.userData.sensor]);marker.userData.value=value;const scale=1+Math.min(.65,Math.log10(Math.abs(value)+1)*.12);marker.userData.dot.scale.setScalar(scale);});},
 };
 $("camera-reset").addEventListener("click",()=>viewer.reset());
 $("explode-toggle").addEventListener("click",()=>viewer.explode());
+$("airflow-toggle").addEventListener("click",()=>viewer.toggleAirflow());
+qsa("[data-component]").forEach(button=>button.addEventListener("click",()=>{qsa("[data-component]").forEach(item=>item.classList.toggle("active",item===button));viewer.focus(button.dataset.component);}));
 
 boot();
