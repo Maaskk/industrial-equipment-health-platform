@@ -7,13 +7,13 @@ The team works independently on separate branches. Everyone must respect these c
 Each member works only in their branch:
 
 ```text
-owner/Maaskk-mlops-integration
-feature/mohamed-kar1-dataops-infra
-feature/HamzaElhaddaji-quality-docs
-feature/Mouhcine005-ml-modeling
-feature/HajarEnnajdy-api-demo
-feature/ilyass-analytics-eda
-feature/Adonis-I-agile-release
+owner/Maaskk
+feature/mohamed-kar1
+feature/HamzaElhaddaji
+feature/Mouhcine005
+feature/HajarEnnajdy
+feature/ilyass
+feature/Adonis-I
 ```
 
 ## Folder Ownership
@@ -47,7 +47,7 @@ Optional engineered features:
 ```text
 sensor_*_rolling_mean_5
 sensor_*_rolling_std_5
-cycle_norm
+cycle_log1p
 engine_age_bucket
 ```
 

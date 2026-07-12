@@ -1,0 +1,49 @@
+version: 2
+
+models:
+  - name: stg_sensor_readings
+    description: "Lectures capteurs nettoyées, prêtes pour le feature engineering"
+    columns:
+      - name: engine_id
+        description: "Identifiant du moteur"
+        tests:
+          - not_null
+      - name: cycle
+        description: "Cycle de fonctionnement du moteur"
+        tests:
+          - not_null
+
+  - name: stg_rul_labels
+    description: "Labels RUL nettoyés"
+    columns:
+      - name: engine_id
+        tests:
+          - not_null
+          - unique
+
+  - name: fct_equipment_health_features
+    description: "Table de features finale utilisée par le pipeline ML (Mouhcine)"
+    columns:
+      - name: engine_id
+        tests:
+          - not_null
+      - name: cycle_log1p
+        description: "Transformation causale du cycle courant, sans connaissance de la fin de vie"
+        tests:
+          - not_null
+      - name: engine_age_bucket
+        description: "Catégorie d'âge du moteur : young / middle / old"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['early', 'middle', 'late']
+      - name: split
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['train', 'test']
+      - name: subset_id
+        tests:
+          - not_null

@@ -1,0 +1,11 @@
+version: 2
+
+sources:
+  - name: raw
+    description: "Données brutes ingérées par dlt depuis les fichiers NASA C-MAPSS"
+    schema: raw
+    tables:
+      - name: raw_sensor_readings
+        description: "Lectures capteurs brutes (engine_id, cycle, settings, sensor_1..21)"
+      - name: raw_rul_labels
+        description: "Labels RUL (Remaining Useful Life) bruts"

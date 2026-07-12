@@ -1,0 +1,13 @@
+{
+  "generated_at_utc": "2026-07-10T13:22:19.928625+00:00",
+  "metric": {
+    "absolute_mean_shift": 38.5,
+    "baseline_mean": 106.25,
+    "baseline_std": 9.601432,
+    "current_mean": 67.75,
+    "current_std": 5.931905,
+    "drift_detected": true,
+    "feature_name": "remaining_useful_life"
+  },
+  "source": "demo_values_when_prediction_log_has_fewer_than_4_rows"
+}

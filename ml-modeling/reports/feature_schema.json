@@ -1,0 +1,42 @@
+{
+  "dataset": "NASA C-MAPSS FD001",
+  "description": "Feature schema for RUL (Remaining Useful Life) regression model. Handed off for MLflow logging (Ossama) and API schema design (Hajar).",
+  "raw_input_columns": {
+    "unit": "int, engine id",
+    "cycle": "int, operational cycle number for this engine",
+    "op_setting_1": "float, operational setting 1",
+    "op_setting_2": "float, operational setting 2",
+    "op_setting_3": "float, operational setting 3",
+    "sensor_1..sensor_21": "float, raw sensor measurement at this cycle"
+  },
+  "engineered_features": {
+    "description": "For each sensor_i (i=1..21), three rolling window features computed causally (only past+current cycles, window=5, grouped per engine unit, never crossing unit boundaries).",
+    "sensor_i_roll_mean": "float, rolling mean of sensor_i over last 5 cycles",
+    "sensor_i_roll_std": "float, rolling std of sensor_i over last 5 cycles",
+    "sensor_i_roll_slope": "float, rolling linear trend (least-squares slope) of sensor_i over last 5 cycles"
+  },
+  "target": {
+    "name": "RUL",
+    "definition": "max_cycle(unit) - current_cycle for train; for test, computed using true RUL offset in RUL_FD001.txt",
+    "clipping": "clipped at upper bound 125 cycles (standard C-MAPSS convention)",
+    "type": "regression (continuous, cycles remaining)"
+  },
+  "preprocessing": {
+    "scaler": "sklearn StandardScaler, fit ONLY on training data",
+    "warmup_rows_dropped": "first (window-1)=4 rows per engine dropped (insufficient history for rolling features)"
+  },
+  "model_input_feature_list": [
+    "op_setting_1", "op_setting_2", "op_setting_3", "cycle",
+    "sensor_1", "sensor_2", "sensor_3", "sensor_4", "sensor_5", "sensor_6", "sensor_7",
+    "sensor_8", "sensor_9", "sensor_10", "sensor_11", "sensor_12", "sensor_13", "sensor_14",
+    "sensor_15", "sensor_16", "sensor_17", "sensor_18", "sensor_19", "sensor_20", "sensor_21",
+    "<sensor_i>_roll_mean for i in 1..21",
+    "<sensor_i>_roll_std for i in 1..21",
+    "<sensor_i>_roll_slope for i in 1..21"
+  ],
+  "model_artifact": {
+    "path": "models/improved_model.joblib",
+    "contents": "dict with keys: model (GradientBoostingRegressor), scaler (StandardScaler), features (list[str])",
+    "notes_for_mlflow": "log model via mlflow.sklearn.log_model(model_bundle['model'], ...); log scaler as a separate artifact (joblib) since MLflow sklearn flavor does not bundle preprocessing automatically."
+  }
+}
