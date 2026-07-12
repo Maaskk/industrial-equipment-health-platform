@@ -2,7 +2,7 @@
 name = "industrial-equipment-health-platform"
 version = "0.1.0"
 description = "Predictive maintenance MLOps and DataOps project."
-requires-python = ">=3.11"
+requires-python = ">=3.12,<3.13"
 dependencies = [
   "dlt==1.28.2",
   "duckdb==1.5.4",
