@@ -18,7 +18,7 @@ class MaaskkApiAppTests(unittest.TestCase):
         body = route_for("/").endpoint()
 
         self.assertIn("Industrial Equipment Health Platform", body)
-        self.assertIn("Run prediction", body)
+        self.assertIn("Run health scan", body)
 
     def test_demo_payload_matches_model_contract(self):
         body = route_for("/demo-payload").endpoint()
