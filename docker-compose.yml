@@ -18,6 +18,7 @@ x-app: &app
     - ./logs:/app/logs
     - ./reports:/app/reports
     - ./warehouse:/app/warehouse
+    - mlflow-storage:/app/mlflow
 
 services:
   mlflow:
@@ -56,6 +57,7 @@ services:
       - ./reports:/app/reports
       - ./warehouse:/app/warehouse
       - dagster-storage:/app/.dagster
+      - mlflow-storage:/app/mlflow
     restart: "no"
 
   api:
