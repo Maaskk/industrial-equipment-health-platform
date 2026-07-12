@@ -44,6 +44,14 @@ def read_feature_schema(schema_path: Path) -> list[str]:
     return required
 
 
+def resolve_duckdb_path() -> Path:
+    configured = os.getenv("DUCKDB_PATH")
+    if configured:
+        return Path(configured)
+    candidates = [Path("warehouse/cmapss_ingestion.duckdb"), Path("cmapss_ingestion.duckdb")]
+    return next((path for path in candidates if path.exists()), candidates[0])
+
+
 def create_app(
     *,
     model_path: Path | None = None,
@@ -119,7 +127,7 @@ def create_app(
     static_path = frontend_root / "static"
     app.mount("/static", StaticFiles(directory=static_path), name="static")
     data_service = EngineDataService(
-        db_path=Path(os.getenv("DUCKDB_PATH", "warehouse/cmapss_ingestion.duckdb")),
+        db_path=resolve_duckdb_path(),
         model=model,
         model_version=model_version,
         monitor=monitor,
