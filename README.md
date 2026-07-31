@@ -16,6 +16,22 @@ Product framing:
 
 The platform predicts equipment degradation risk and remaining useful life from multivariate sensor readings. The final dataset is NASA C-MAPSS turbofan degradation data.
 
+## Team
+
+<table>
+  <tr>
+    <td align="center"><a href="https://github.com/Maaskk"><img src="https://github.com/Maaskk.png?size=96" width="72" alt="Ossama"><br><sub><b>Ossama</b></sub></a></td>
+    <td align="center"><a href="https://github.com/mohamed-kar1"><img src="https://github.com/mohamed-kar1.png?size=96" width="72" alt="Mohamed"><br><sub><b>Mohamed</b></sub></a></td>
+    <td align="center"><a href="https://github.com/HamzaElhaddaji"><img src="https://github.com/HamzaElhaddaji.png?size=96" width="72" alt="Hamza"><br><sub><b>Hamza</b></sub></a></td>
+    <td align="center"><a href="https://github.com/Mouhcine005"><img src="https://github.com/Mouhcine005.png?size=96" width="72" alt="Mouhcine"><br><sub><b>Mouhcine</b></sub></a></td>
+    <td align="center"><a href="https://github.com/HajarEnnajdy"><img src="https://github.com/HajarEnnajdy.png?size=96" width="72" alt="Hajar"><br><sub><b>Hajar</b></sub></a></td>
+    <td align="center"><a href="https://github.com/Iliassouchida"><img src="https://github.com/Iliassouchida.png?size=96" width="72" alt="Ilyass"><br><sub><b>Ilyass</b></sub></a></td>
+    <td align="center"><a href="https://github.com/Adonis-I"><img src="https://github.com/Adonis-I.png?size=96" width="72" alt="Akram"><br><sub><b>Akram</b></sub></a></td>
+  </tr>
+</table>
+
+Roles and contribution areas are documented in [CONTRIBUTORS.md](CONTRIBUTORS.md).
+
 ## Final Local Run
 
 The professor allowed local Docker/Docker Compose delivery. From a fresh clone, the intended command is:
