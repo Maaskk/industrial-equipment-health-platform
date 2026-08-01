@@ -130,7 +130,7 @@ Each member works in their own branch and opens pull requests into `main`.
 | Hamza | `HamzaElhaddaji` | `feature/HamzaElhaddaji` | data contracts, tests, data lineage, documentation QA |
 | Mouhcine | `Mouhcine005` | `feature/Mouhcine005` | model training, evaluation, feature engineering |
 | Hajar | `HajarEnnajdy` | `feature/HajarEnnajdy` | API schemas, demo client, user-facing demo flow |
-| Ilyass | pending | `feature/ilyass` | EDA, business analysis, KPIs, visual evidence |
+| Ilyass | `Iliassouchida` | `feature/ilyass-analytics-eda` | EDA, business analysis, KPIs, visual evidence |
 | Akram | `Adonis-I` | `feature/Adonis-I` | Agile artifacts, sprint reports, final release and presentation |
 
 Detailed task files are in [`team/`](team/).

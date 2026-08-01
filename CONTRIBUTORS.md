@@ -15,3 +15,23 @@ individual work behind that release.
 | [Akram](https://github.com/Adonis-I) | Agile artifacts, sprint reports, release, and presentation |
 
 Detailed responsibility records are available in [`team/`](team/).
+
+## Preserved Git history
+
+The original feature-branch commits for Mohamed, Hamza, Mouhcine and Ilyass are
+reachable from the default branch without changing the final production tree.
+This preserves work that was previously consolidated outside Git's ancestry
+instead of recreating commits or rewriting authors.
+
+| Contributor | Preserved branch | GitHub attribution status |
+|---|---|---|
+| Mohamed | `feature/mohamed-kar1` | Original commits are linked to `@mohamed-kar1` |
+| Hamza | `feature/HamzaElhaddaji` | Original commits are linked to `@HamzaElhaddaji` |
+| Mouhcine | `feature/Mouhcine005` | Original commits are linked to `@Mouhcine005` |
+| Ilyass | `feature/ilyass-analytics-eda` | Original commits are preserved, but GitHub does not currently link their author email to `@Iliassouchida` |
+
+The preserved Hajar and Akram branch tips contain commits authored under
+Ossama's Git identity, so they cannot legitimately create automatic contributor
+attribution for Hajar or Akram. Their completed roles remain documented above.
+GitHub may take time to rebuild its contributor list after authentic history
+becomes reachable from the default branch.
