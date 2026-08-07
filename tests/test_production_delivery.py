@@ -53,6 +53,20 @@ class ProductionDeliveryTests(unittest.TestCase):
         self.assertTrue(action["config"]["schedule_enabled"])
         self.assertEqual(action["config"]["schedule_timezone"], "Africa/Casablanca")
 
+    def test_production_ports_are_loopback_only_and_configurable(self):
+        compose_path = ROOT / "deploy" / "compose.production.yml"
+        compose = yaml.safe_load(compose_path.read_text())
+
+        expected_ports = {
+            "mlflow": "127.0.0.1:${MLFLOW_HOST_PORT:-5000}:5000",
+            "api": "127.0.0.1:${API_HOST_PORT:-8000}:8000",
+            "dagster-webserver": "127.0.0.1:${DAGSTER_HOST_PORT:-3000}:3000",
+        }
+        for service_name, expected_port in expected_ports.items():
+            self.assertEqual(
+                compose["services"][service_name]["ports"], [expected_port]
+            )
+
     def test_docker_context_excludes_local_and_runtime_artifacts(self):
         ignored = {
             line.rstrip("/") for line in (ROOT / ".dockerignore").read_text().splitlines()
