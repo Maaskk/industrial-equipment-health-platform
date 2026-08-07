@@ -1,0 +1,181 @@
+[[server]]
+name = "oussama-macbook"
+description = "Docker Desktop host for the industrial equipment health platform"
+tags = ["industrial-health", "mlops", "production"]
+[server.config]
+enabled = true
+region = "Casablanca"
+external_address = "http://localhost"
+stats_monitoring = true
+auto_prune = true
+send_unreachable_alerts = true
+send_cpu_alerts = true
+send_mem_alerts = true
+send_disk_alerts = true
+send_version_mismatch_alerts = true
+cpu_warning = 80.0
+cpu_critical = 95.0
+mem_warning = 80.0
+mem_critical = 95.0
+disk_warning = 80.0
+disk_critical = 95.0
+
+[[builder]]
+name = "industrial-health-builder"
+description = "Builds the platform image on the connected Docker host"
+tags = ["industrial-health", "ci-cd"]
+config.type = "Server"
+[builder.config.params]
+server_id = "oussama-macbook"
+
+[[repo]]
+name = "industrial-equipment-health-platform"
+description = "Operational checkout used for validation and maintenance commands"
+tags = ["industrial-health", "github", "mlops"]
+[repo.config]
+server = "oussama-macbook"
+repo = "Maaskk/industrial-equipment-health-platform"
+branch = "main"
+git_provider = "github.com"
+on_clone.path = "."
+on_clone.command = "docker compose -f deploy/compose.production.yml config --quiet"
+on_pull.path = "."
+on_pull.command = "docker compose -f deploy/compose.production.yml config --quiet"
+
+[[build]]
+name = "industrial-equipment-health-platform"
+description = "Reproducible platform container build"
+tags = ["industrial-health", "ci-cd"]
+[build.config]
+builder = "industrial-health-builder"
+repo = "Maaskk/industrial-equipment-health-platform"
+branch = "main"
+git_provider = "github.com"
+build_path = "."
+dockerfile_path = "Dockerfile"
+image_name = "industrial-equipment-health-platform"
+include_latest_tag = true
+include_commit_tag = true
+auto_increment_version = true
+labels = """
+org.opencontainers.image.source = https://github.com/Maaskk/industrial-equipment-health-platform
+org.opencontainers.image.description = Industrial equipment predictive-maintenance MLOps platform
+"""
+
+[[stack]]
+name = "industrial-equipment-health-platform"
+description = "API, MLflow, Dagster, training pipeline, and persistent model data"
+tags = ["industrial-health", "mlops", "production"]
+deploy = true
+[stack.config]
+server = "oussama-macbook"
+repo = "Maaskk/industrial-equipment-health-platform"
+branch = "main"
+git_provider = "github.com"
+file_paths = ["deploy/compose.production.yml"]
+project_name = "industrial-equipment-health-platform"
+auto_pull = true
+poll_for_updates = true
+auto_update = true
+auto_update_all_services = true
+ignore_services = ["training-init"]
+send_alerts = true
+webhook_enabled = true
+links = [
+  "http://localhost:8000/docs",
+  "http://localhost:5000",
+  "http://localhost:3000",
+]
+environment = """
+APP_IMAGE = industrial-equipment-health-platform:latest
+TRAIN_SUBSETS = FD001
+"""
+
+[[procedure]]
+name = "industrial-health-delivery"
+description = "Pull, build, deploy, and verify the production platform"
+tags = ["industrial-health", "ci-cd"]
+[procedure.config]
+failure_alert = true
+schedule = "at 03:00 every Sunday"
+schedule_format = "English"
+schedule_timezone = "Africa/Casablanca"
+schedule_enabled = true
+schedule_alert = false
+webhook_enabled = true
+
+[[procedure.config.stage]]
+name = "Refresh source"
+executions = [
+  { execution.type = "PullRepo", execution.params.repo = "industrial-equipment-health-platform" },
+]
+
+[[procedure.config.stage]]
+name = "Build image"
+executions = [
+  { execution.type = "RunBuild", execution.params.build = "industrial-equipment-health-platform" },
+]
+
+[[procedure.config.stage]]
+name = "Deploy stack"
+executions = [
+  { execution.type = "DeployStack", execution.params.stack = "industrial-equipment-health-platform" },
+]
+
+[[procedure.config.stage]]
+name = "Verify health"
+executions = [
+  { execution.type = "RunAction", execution.params.action = "industrial-health-audit" },
+]
+
+[[action]]
+name = "industrial-health-audit"
+description = "Fails when the Komodo stack is absent or not running"
+tags = ["industrial-health", "monitoring"]
+[action.config]
+failure_alert = true
+schedule = "every 15 minutes"
+schedule_format = "English"
+schedule_timezone = "Africa/Casablanca"
+schedule_enabled = true
+schedule_alert = false
+webhook_enabled = true
+file_contents = """
+const stacks = await komodo.read("ListStacks", {
+  query: { names: ["industrial-equipment-health-platform"] },
+});
+const stack = stacks[0];
+if (!stack) throw new Error("industrial-equipment-health-platform is missing");
+if (stack.info.state !== "running") {
+  throw new Error(`industrial-equipment-health-platform state: ${stack.info.state}`);
+}
+console.log(`industrial-equipment-health-platform state: ${stack.info.state}`);
+"""
+
+[[resource_sync]]
+name = "industrial-health-resources"
+description = "GitOps source of truth for the complete Komodo project"
+tags = ["industrial-health", "gitops"]
+[resource_sync.config]
+repo = "Maaskk/industrial-equipment-health-platform"
+branch = "main"
+git_provider = "github.com"
+resource_path = ["komodo/resources.toml"]
+delete = false
+include_resources = true
+include_user_groups = true
+include_variables = true
+pending_alert = true
+webhook_enabled = true
+
+[[user_group]]
+name = "industrial-health-operators"
+users = ["oashad"]
+all.Server = { level = "Write", specific = ["Attach", "Logs", "Inspect", "Terminal", "Processes"] }
+all.Builder = { level = "Write", specific = ["Attach"] }
+all.Repo = { level = "Write", specific = ["Attach", "Logs"] }
+all.Build = "Write"
+all.Stack = { level = "Write", specific = ["Logs", "Inspect", "Terminal"] }
+all.Procedure = "Write"
+all.Action = "Write"
+all.ResourceSync = "Write"
