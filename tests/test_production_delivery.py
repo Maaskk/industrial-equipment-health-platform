@@ -44,10 +44,16 @@ class ProductionDeliveryTests(unittest.TestCase):
 
         stack = resources["stack"][0]
         self.assertEqual(stack["name"], "industrial-equipment-health-platform")
-        self.assertEqual(stack["config"]["server"], "oussama-macbook")
+        self.assertEqual(stack["config"]["server"], "industrial-health-host")
         self.assertEqual(stack["config"]["file_paths"], ["deploy/compose.production.yml"])
         self.assertIn("training-init", stack["config"]["ignore_services"])
         self.assertTrue(stack["config"]["send_alerts"])
+        self.assertIn("DAGSTER_HOST_PORT = 3001", stack["config"]["environment"])
+
+        server = resources["server"][0]
+        self.assertEqual(server["name"], "industrial-health-host")
+        self.assertNotIn("address", server["config"])
+        self.assertNotIn("external_address", server["config"])
 
         action = resources["action"][0]
         self.assertTrue(action["config"]["schedule_enabled"])

@@ -1,11 +1,10 @@
 [[server]]
-name = "oussama-macbook"
-description = "Docker Desktop host for the industrial equipment health platform"
+name = "industrial-health-host"
+description = "Private outbound Docker host for the industrial equipment health platform"
 tags = ["industrial-health", "mlops", "production"]
 [server.config]
 enabled = true
-region = "Casablanca"
-external_address = "http://localhost"
+region = "private-production"
 stats_monitoring = true
 auto_prune = true
 send_unreachable_alerts = true
@@ -26,14 +25,14 @@ description = "Builds the platform image on the connected Docker host"
 tags = ["industrial-health", "ci-cd"]
 config.type = "Server"
 [builder.config.params]
-server_id = "oussama-macbook"
+server_id = "industrial-health-host"
 
 [[repo]]
 name = "industrial-equipment-health-platform"
 description = "Operational checkout used for validation and maintenance commands"
 tags = ["industrial-health", "github", "mlops"]
 [repo.config]
-server = "oussama-macbook"
+server = "industrial-health-host"
 repo = "Maaskk/industrial-equipment-health-platform"
 branch = "main"
 git_provider = "github.com"
@@ -68,7 +67,7 @@ description = "API, MLflow, Dagster, training pipeline, and persistent model dat
 tags = ["industrial-health", "mlops", "production"]
 deploy = true
 [stack.config]
-server = "oussama-macbook"
+server = "industrial-health-host"
 repo = "Maaskk/industrial-equipment-health-platform"
 branch = "main"
 git_provider = "github.com"
@@ -81,14 +80,12 @@ auto_update_all_services = true
 ignore_services = ["training-init"]
 send_alerts = true
 webhook_enabled = true
-links = [
-  "http://localhost:8000/docs",
-  "http://localhost:5000",
-  "http://localhost:3000",
-]
 environment = """
 APP_IMAGE = industrial-equipment-health-platform:latest
 TRAIN_SUBSETS = FD001
+MLFLOW_HOST_PORT = 5001
+API_HOST_PORT = 8001
+DAGSTER_HOST_PORT = 3001
 """
 
 [[procedure]]
