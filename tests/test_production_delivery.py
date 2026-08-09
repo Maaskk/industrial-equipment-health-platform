@@ -18,10 +18,13 @@ class ProductionDeliveryTests(unittest.TestCase):
             "api",
             "dagster-webserver",
             "dagster-daemon",
+            "ops-gateway",
         }
         self.assertEqual(set(compose["services"]), expected_services)
 
-        for service in compose["services"].values():
+        application_services = expected_services - {"ops-gateway"}
+        for service_name in application_services:
+            service = compose["services"][service_name]
             self.assertEqual(
                 service["image"],
                 "${APP_IMAGE:-industrial-equipment-health-platform:latest}",
@@ -60,14 +63,45 @@ class ProductionDeliveryTests(unittest.TestCase):
         compose = yaml.safe_load(compose_path.read_text())
 
         expected_ports = {
-            "mlflow": "${HOST_BIND_IP:-127.0.0.1}:${MLFLOW_HOST_PORT:-5000}:5000",
             "api": "${HOST_BIND_IP:-127.0.0.1}:${API_HOST_PORT:-8000}:8000",
-            "dagster-webserver": "${HOST_BIND_IP:-127.0.0.1}:${DAGSTER_HOST_PORT:-3000}:3000",
+            "ops-gateway": [
+                "${HOST_BIND_IP:-127.0.0.1}:${MLFLOW_HOST_PORT:-5000}:3401",
+                "${HOST_BIND_IP:-127.0.0.1}:${DAGSTER_HOST_PORT:-3000}:3403",
+            ],
         }
         for service_name, expected_port in expected_ports.items():
+            expected = expected_port if isinstance(expected_port, list) else [expected_port]
             self.assertEqual(
-                compose["services"][service_name]["ports"], [expected_port]
+                compose["services"][service_name]["ports"], expected
             )
+
+        self.assertNotIn("ports", compose["services"]["mlflow"])
+        self.assertNotIn("ports", compose["services"]["dagster-webserver"])
+
+    def test_operational_consoles_require_authentication(self):
+        gateway_config = (ROOT / "deploy" / "nginx-ops.conf").read_text()
+        password_file = (ROOT / "deploy" / "ops.htpasswd").read_text().strip()
+
+        self.assertGreaterEqual(gateway_config.count("auth_basic"), 2)
+        self.assertIn("proxy_pass http://mlflow:5000", gateway_config)
+        self.assertIn("proxy_pass http://dagster-webserver:3000", gateway_config)
+        self.assertRegex(password_file, r"^[a-z][a-z0-9_-]*:\$apr1\$")
+
+    def test_live_frontend_documentation_names_university_deployment_as_primary(self):
+        architecture = (ROOT / "docs" / "architecture" / "live-frontend.md").read_text()
+
+        self.assertIn("http://exp.s3.fsbm.ma:3402/", architecture)
+        self.assertNotIn("does not provide a second user interface", architecture)
+
+    def test_repository_has_no_external_frontend_deployment_path(self):
+        obsolete_paths = {
+            ROOT / "app.py",
+            ROOT / "src" / "industrial_health" / "api" / "frontend_proxy.py",
+            ROOT / "tests" / "test_frontend_proxy.py",
+        }
+
+        for path in obsolete_paths:
+            self.assertFalse(path.exists(), path)
 
     def test_docker_context_excludes_local_and_runtime_artifacts(self):
         ignored = {

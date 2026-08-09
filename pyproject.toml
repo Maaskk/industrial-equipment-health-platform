@@ -37,6 +37,3 @@ exclude = [
   "warehouse",
   "*.ipynb",
 ]
-
-[tool.vercel]
-entrypoint = "app:app"

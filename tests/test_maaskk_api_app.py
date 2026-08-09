@@ -27,14 +27,12 @@ class MaaskkApiAppTests(unittest.TestCase):
         self.assertIn("text/html", response.headers["content-type"])
         self.assertIn("AeroReliability Lab", response.text)
         self.assertIn('/static/js/app.js', response.text)
-        self.assertNotIn("vercel.app", response.text)
 
     def test_dashboard_static_assets_are_served_by_the_api_process(self):
         response = TestClient(app).get("/static/js/app.js")
 
         self.assertEqual(response.status_code, 200)
         self.assertIn('api("/health")', response.text)
-        self.assertNotIn("vercel.app", response.text)
 
     def test_service_metadata_has_a_dedicated_api_route(self):
         body = route_for("/api/service").endpoint()

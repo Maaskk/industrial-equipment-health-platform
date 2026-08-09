@@ -41,7 +41,9 @@ The primary application is hosted by the university deployment:
 - MLflow: http://exp.s3.fsbm.ma:3401/
 - Dagster: http://exp.s3.fsbm.ma:3403/
 
-Komodo manages Stack `industrial_equipment_health_platform` on shared Server `vh3`. The dashboard and API are served by the same FastAPI container. Browser requests use same-origin relative routes, so Vercel is not required.
+Komodo manages Stack `industrial_equipment_health_platform` on shared Server `vh3`. The dashboard and API are served by the same FastAPI container. Browser requests use same-origin relative routes. No external frontend host is required.
+
+The MLflow and Dagster consoles require the production operations credentials. The credentials are distributed separately and are not stored in this repository.
 
 For a local reproduction:
 
@@ -57,7 +59,7 @@ This starts:
 - Dagster webserver: http://localhost:3000
 - `training-init`, which downloads NASA C-MAPSS and executes the full Dagster job: dlt, dbt, tests, a genuinely executed training notebook, MLflow registration, and monitoring evidence.
 
-The five services are MLflow, one-shot training initialization, FastAPI, Dagster webserver, and Dagster daemon. Data, models, reports, logs, DuckDB, Dagster state, and MLflow state use persistent volumes.
+The six services are MLflow, one-shot training initialization, FastAPI, Dagster webserver, Dagster daemon, and the authenticated operations gateway. Data, models, reports, logs, DuckDB, Dagster state, and MLflow state use persistent volumes.
 
 For a direct local Python run:
 

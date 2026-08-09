@@ -1,7 +1,9 @@
 # Live frontend architecture
 
-The public application is hosted at `https://industrial-equipment-health-platfor.vercel.app/`.
+The production application is hosted by the university deployment at `http://exp.s3.fsbm.ma:3402/`.
 
-Komodo manages the training pipeline, model registry, API, MLflow, and Dagster services on the shared server. The FastAPI service on port 3402 exposes application data, predictions, health information, and OpenAPI documentation. It does not provide a second user interface.
+Komodo manages the complete Docker Compose workload on the shared server. FastAPI serves the existing dashboard, application API, health endpoint, and OpenAPI documentation from the same container on port 3402. Browser requests use same-origin relative routes.
 
-The Vercel application serves the existing browser interface. Its server-side routes forward application requests to the Komodo API. This keeps browser traffic on HTTPS while predictions are produced by the champion model loaded from MLflow.
+MLflow and Dagster run on the internal Compose network. The `ops-gateway` service exposes their consoles on ports 3401 and 3403 with HTTP authentication. FastAPI accesses MLflow directly inside the Compose network, so protecting the console does not interrupt model loading or prediction.
+
+This is the only production dashboard. No external frontend host is required.

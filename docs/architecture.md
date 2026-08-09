@@ -1,6 +1,6 @@
 # Production Architecture
 
-The university deployment is the primary application. Vercel is not required.
+The university deployment is the primary application. No external frontend host is required.
 
 ```text
 Browser
@@ -19,6 +19,7 @@ GitHub release
      -> api
      -> dagster-webserver
      -> dagster-daemon
+     -> ops-gateway
 ```
 
 ## Runtime services
@@ -30,6 +31,7 @@ GitHub release
 | `api` | Existing dashboard, FastAPI routes, MLflow champion inference | long-running |
 | `dagster-webserver` | Asset, job, run, and schedule interface | long-running |
 | `dagster-daemon` | Executes the enabled daily schedule | long-running |
+| `ops-gateway` | Authenticated access to the MLflow and Dagster consoles | long-running |
 
 Named volumes retain NASA data, DuckDB, models, reports, Dagster state, MLflow state, and prediction logs. `deploy/compose.production.yml` is the Compose definition used by the Komodo Stack.
 
