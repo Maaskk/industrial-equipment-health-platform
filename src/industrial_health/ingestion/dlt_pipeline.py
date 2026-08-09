@@ -4,8 +4,11 @@ from pathlib import Path
 import dlt
 import pandas as pd
 
-DATA_DIR = Path(os.getenv("CMAPSS_DATA_DIR", "data/raw"))
-DUCKDB_PATH = Path(os.getenv("DUCKDB_PATH", "cmapss_ingestion.duckdb"))
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+DATA_DIR = Path(os.getenv("CMAPSS_DATA_DIR", str(PROJECT_ROOT / "data" / "raw")))
+DUCKDB_PATH = Path(
+    os.getenv("DUCKDB_PATH", str(PROJECT_ROOT / "cmapss_ingestion.duckdb"))
+)
 
 CMAPSS_FILES = {
     "train_FD001": DATA_DIR / "train_FD001.txt",
@@ -26,6 +29,15 @@ COLUMNS = [
     "engine_id", "cycle",
     "setting_1", "setting_2", "setting_3",
 ] + [f"sensor_{i}" for i in range(1, 22)]
+
+
+def resolve_dlt_state_dir() -> Path:
+    return Path(os.getenv("DLT_DATA_DIR", str(PROJECT_ROOT / ".dlt")))
+
+
+def prepare_storage(database_path: Path, state_dir: Path) -> None:
+    database_path.parent.mkdir(parents=True, exist_ok=True)
+    state_dir.mkdir(parents=True, exist_ok=True)
 
 def _load_cmapss_file(path: Path, is_rul: bool = False):
     source_name = path.stem
@@ -70,6 +82,8 @@ def cmapss_source():
 
 
 def run_pipeline():
+    state_dir = resolve_dlt_state_dir()
+    prepare_storage(DUCKDB_PATH, state_dir)
     # Keep Arrow batches compatible with dlt's relational table contract.
     dlt.config["normalize.parquet_normalizer.add_dlt_id"] = True
     dlt.config["normalize.parquet_normalizer.add_dlt_load_id"] = True
@@ -77,6 +91,7 @@ def run_pipeline():
         pipeline_name="cmapss_ingestion",
         destination=dlt.destinations.duckdb(credentials=str(DUCKDB_PATH)),
         dataset_name="raw",
+        pipelines_dir=str(state_dir),
         dev_mode=False,
     )
     load_info = pipeline.run(cmapss_source())

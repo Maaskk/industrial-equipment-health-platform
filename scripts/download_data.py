@@ -1,23 +1,45 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import io
 import shutil
+import ssl
 import urllib.request
 import zipfile
 from pathlib import Path
 
+import certifi
 
 NASA_CMAPSS_URL = (
     "https://phm-datasets.s3.amazonaws.com/NASA/"
     "6.+Turbofan+Engine+Degradation+Simulation+Data+Set.zip"
 )
+NASA_CMAPSS_SHA256 = "c9c5dec12a945a82e8bb4446589d7fb3cc057b5e5d81fa1a12e25ee9912ad3b2"
 
 EXPECTED_FILES = [
     *(f"train_FD00{i}.txt" for i in range(1, 5)),
     *(f"test_FD00{i}.txt" for i in range(1, 5)),
     *(f"RUL_FD00{i}.txt" for i in range(1, 5)),
 ]
+
+
+def verify_sha256(path: Path, expected: str) -> None:
+    digest = hashlib.sha256()
+    with path.open("rb") as archive:
+        for chunk in iter(lambda: archive.read(1024 * 1024), b""):
+            digest.update(chunk)
+    actual = digest.hexdigest()
+    if actual != expected:
+        raise RuntimeError(
+            f"NASA C-MAPSS checksum mismatch: expected {expected}, received {actual}"
+        )
+
+
+def download_file(url: str, target: Path) -> None:
+    context = ssl.create_default_context(cafile=certifi.where())
+    with urllib.request.urlopen(url, context=context) as response, target.open("wb") as output:
+        shutil.copyfileobj(response, output)
 
 
 def expected_files_present(data_dir: Path) -> bool:
@@ -64,7 +86,8 @@ def download_cmapss(data_dir: Path, url: str = NASA_CMAPSS_URL, force: bool = Fa
 
     zip_path = data_dir / "cmapss_turbofan.zip"
     print(f"Downloading NASA C-MAPSS archive to {zip_path}")
-    urllib.request.urlretrieve(url, zip_path)
+    download_file(url, zip_path)
+    verify_sha256(zip_path, NASA_CMAPSS_SHA256)
     extract_expected_files(zip_path, data_dir)
     print(f"Extracted {len(EXPECTED_FILES)} files to {data_dir}")
 

@@ -32,9 +32,18 @@ The platform predicts equipment degradation risk and remaining useful life from 
 
 Roles and contribution areas are documented in [CONTRIBUTORS.md](CONTRIBUTORS.md).
 
-## Final Local Run
+## Production Application
 
-The professor allowed local Docker/Docker Compose delivery. From a fresh clone, the intended command is:
+The primary application is hosted by the university deployment:
+
+- dashboard and FastAPI: http://exp.s3.fsbm.ma:3402/
+- API documentation: http://exp.s3.fsbm.ma:3402/docs
+- MLflow: http://exp.s3.fsbm.ma:3401/
+- Dagster: http://exp.s3.fsbm.ma:3403/
+
+Komodo manages Stack `industrial_equipment_health_platform` on shared Server `vh3`. The dashboard and API are served by the same FastAPI container. Browser requests use same-origin relative routes, so Vercel is not required.
+
+For a local reproduction:
 
 ```bash
 docker compose up --build
@@ -48,13 +57,7 @@ This starts:
 - Dagster webserver: http://localhost:3000
 - `training-init`, which downloads NASA C-MAPSS and executes the full Dagster job: dlt, dbt, tests, a genuinely executed training notebook, MLflow registration, and monitoring evidence.
 
-## Vercel Deployment
-
-The public application is available at
-https://industrial-equipment-health-platfor.vercel.app/. `app.py` serves the existing
-interface and forwards its API requests to the Komodo deployment. Model loading,
-prediction logging, MLflow, and Dagster remain on the managed server. The Vercel
-deployment does not contain a second model or warehouse.
+The five services are MLflow, one-shot training initialization, FastAPI, Dagster webserver, and Dagster daemon. Data, models, reports, logs, DuckDB, Dagster state, and MLflow state use persistent volumes.
 
 For a direct local Python run:
 
@@ -134,10 +137,13 @@ Scikit-learn training pipeline
 MLflow tracking and model registry
         |
         v
-FastAPI prediction service
+MLflow registered champion
         |
         v
-Docker, GitHub Actions, monitoring, and final demo
+FastAPI dashboard and prediction service on university port 3402
+        |
+        v
+Komodo, Docker Compose, GitHub Actions, and monitoring
 ```
 
 ## Team Branches
@@ -173,7 +179,7 @@ Detailed task files are in [`team/`](team/).
   - dataset-backed fleet, replay, batch scoring, model, monitoring, and maintenance
     endpoints under `/api`
 - Docker containerization.
-- GitHub Actions CI/CD. The active workflow is stored in [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+- GitHub Actions CI and release verification. Quality checks are in [`.github/workflows/ci.yml`](.github/workflows/ci.yml); the protected production check is in [`.github/workflows/release.yml`](.github/workflows/release.yml).
 - Monitoring for service health, latency, ML metrics, and drift.
 - Final report, demo, and presentation.
 

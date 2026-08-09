@@ -1,6 +1,12 @@
 import unittest
+import json
+import os
+import tempfile
+from pathlib import Path
+from unittest.mock import patch
 
 from fastapi import HTTPException
+from fastapi.testclient import TestClient
 
 from industrial_health.api.app import app
 from industrial_health.mlops.smoke import build_sample_payload
@@ -14,8 +20,24 @@ def route_for(path):
 
 
 class MaaskkApiAppTests(unittest.TestCase):
-    def test_api_root_returns_service_metadata(self):
-        body = route_for("/").endpoint()
+    def test_root_serves_existing_dashboard_from_the_api_process(self):
+        response = TestClient(app).get("/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("text/html", response.headers["content-type"])
+        self.assertIn("AeroReliability Lab", response.text)
+        self.assertIn('/static/js/app.js', response.text)
+        self.assertNotIn("vercel.app", response.text)
+
+    def test_dashboard_static_assets_are_served_by_the_api_process(self):
+        response = TestClient(app).get("/static/js/app.js")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('api("/health")', response.text)
+        self.assertNotIn("vercel.app", response.text)
+
+    def test_service_metadata_has_a_dedicated_api_route(self):
+        body = route_for("/api/service").endpoint()
 
         self.assertEqual(body["service"], "industrial-equipment-health-api")
         self.assertEqual(body["status"], "ready")
@@ -40,6 +62,14 @@ class MaaskkApiAppTests(unittest.TestCase):
         self.assertTrue(body["model_loaded"])
         self.assertEqual(body["model_source"], "local_pickle")
         self.assertGreater(body["feature_count"], 20)
+        self.assertIn("release_sha", body)
+        self.assertIn("release_tag", body)
+
+    def test_responses_include_a_request_identifier(self):
+        response = TestClient(app).get("/health")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.headers["x-request-id"])
 
     def test_predict_accepts_generated_sample_payload(self):
         predict_route = route_for("/predict")
@@ -71,6 +101,22 @@ class MaaskkApiAppTests(unittest.TestCase):
         self.assertIn("/api/engines/{engine_id}/cycle/{cycle}/predict", paths)
         self.assertIn("/api/predict/batch", paths)
         self.assertIn("/api/platform/status", paths)
+        self.assertIn("/api/release", paths)
+
+    def test_release_route_reads_the_runtime_manifest(self):
+        manifest = {
+            "git_sha": "abc123",
+            "git_tag": "professor-demo-v1",
+            "model_version": "7",
+            "model_alias": "champion",
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "final_release.json"
+            path.write_text(json.dumps(manifest), encoding="utf-8")
+            with patch.dict(os.environ, {"RELEASE_REPORT_PATH": str(path)}):
+                body = route_for("/api/release").endpoint()
+
+        self.assertEqual(body, manifest)
 
     def test_operations_mode_does_not_expose_future_truth(self):
         route = route_for("/api/engines/{engine_id}/cycle/{cycle}/predict")

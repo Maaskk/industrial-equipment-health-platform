@@ -9,13 +9,20 @@ x-app: &app
     CMAPSS_DATA_DIR: /app/data/raw
     DUCKDB_PATH: /app/warehouse/cmapss_ingestion.duckdb
     DBT_DUCKDB_PATH: /app/warehouse/cmapss_ingestion.duckdb
+    DLT_DATA_DIR: /app/.dlt
     MLFLOW_TRACKING_URI: http://mlflow:5000
     MODEL_NAME: industrial-equipment-health-model
     MODEL_ALIAS: champion
     MODEL_PATH: /app/models/latest/model.pkl
     FEATURE_SCHEMA_PATH: /app/models/latest/feature_schema.json
     PREDICTION_LOG_PATH: /app/logs/prediction_logs.jsonl
-    TRAIN_SUBSETS: ${TRAIN_SUBSETS:-FD001}
+    TRAIN_SUBSETS: ${TRAIN_SUBSETS:-FD001 FD002 FD003 FD004}
+    MLFLOW_PUBLIC_URL: ${MLFLOW_PUBLIC_URL:-http://exp.s3.fsbm.ma:3401}
+    DAGSTER_PUBLIC_URL: ${DAGSTER_PUBLIC_URL:-http://exp.s3.fsbm.ma:3403}
+    RELEASE_SHA: ${RELEASE_SHA:-unrecorded}
+    RELEASE_TAG: ${RELEASE_TAG:-unreleased}
+    RELEASE_BRANCH: ${RELEASE_BRANCH:-production}
+    RELEASE_REPORT_PATH: /app/reports/release/final_release.json
   volumes:
     - data:/app/data
     - models:/app/models

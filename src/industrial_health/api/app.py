@@ -3,6 +3,7 @@ import os
 import time
 from pathlib import Path
 from typing import Any
+from uuid import uuid4
 
 from industrial_health.api.contracts import build_prediction_response, build_service_info
 from industrial_health.api.data_service import (
@@ -66,6 +67,8 @@ def create_app(
     """
 
     from fastapi import FastAPI, HTTPException, Query
+    from fastapi.responses import HTMLResponse
+    from fastapi.staticfiles import StaticFiles
     from pydantic import BaseModel, Field
 
     class PredictionRequest(BaseModel):
@@ -88,6 +91,20 @@ def create_app(
         title="Industrial Equipment Health Platform",
         version="0.1.0",
         description="Predictive maintenance API for industrial equipment health.",
+    )
+
+    @app.middleware("http")
+    async def request_identifier(request: Any, call_next: Any) -> Any:
+        request_id = request.headers.get("x-request-id") or str(uuid4())
+        response = await call_next(request)
+        response.headers["x-request-id"] = request_id
+        return response
+    frontend_root = Path(__file__).resolve().parent
+    template_path = frontend_root / "templates" / "dashboard.html"
+    app.mount(
+        "/static",
+        StaticFiles(directory=frontend_root / "static"),
+        name="static",
     )
     metadata = ModelMetadata.from_environment()
     resolved_model_path = model_path or Path(os.getenv("MODEL_PATH", "models/latest/model.pkl"))
@@ -137,7 +154,21 @@ def create_app(
             return HTTPException(status_code=422, detail=str(exc))
         return HTTPException(status_code=503, detail=str(exc))
 
-    @app.get("/", include_in_schema=False)
+    @app.get("/", response_class=HTMLResponse, include_in_schema=False)
+    def dashboard() -> str:
+        return (
+            template_path.read_text(encoding="utf-8")
+            .replace(
+                "http://exp.s3.fsbm.ma:3401",
+                os.getenv("MLFLOW_PUBLIC_URL", "http://exp.s3.fsbm.ma:3401"),
+            )
+            .replace(
+                "http://exp.s3.fsbm.ma:3403",
+                os.getenv("DAGSTER_PUBLIC_URL", "http://exp.s3.fsbm.ma:3403"),
+            )
+        )
+
+    @app.get("/api/service")
     def service_info() -> dict[str, str]:
         return build_service_info()
 
@@ -317,7 +348,24 @@ def create_app(
             "request_feature_count": len(request_feature_names),
             "mlflow_tracking_uri": os.getenv("MLFLOW_TRACKING_URI", "sqlite:///mlflow.db"),
             "monitoring_log_path": resolved_monitor_path.as_posix(),
+            "release_sha": os.getenv("RELEASE_SHA", "development"),
+            "release_tag": os.getenv("RELEASE_TAG", "unreleased"),
         }
+
+    @app.get("/api/release")
+    def release() -> dict[str, object]:
+        report_path = Path(
+            os.getenv("RELEASE_REPORT_PATH", "reports/release/final_release.json")
+        )
+        if not report_path.exists():
+            raise HTTPException(status_code=503, detail="Release manifest is not available.")
+        try:
+            payload = json.loads(report_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise HTTPException(status_code=503, detail="Release manifest is invalid.") from exc
+        if not isinstance(payload, dict):
+            raise HTTPException(status_code=503, detail="Release manifest is invalid.")
+        return payload
 
     @app.post("/predict")
     def predict(payload: PredictionRequest) -> dict[str, float | str]:

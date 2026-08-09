@@ -1,143 +1,40 @@
-# Industrial Equipment Health Platform Final Report
+# Industrial Equipment Health Platform
 
-## Executive Summary
+## Delivery
 
-This project implements a local MLOps/DataOps platform for predictive maintenance using the NASA C-MAPSS turbofan degradation dataset. The platform ingests raw files, stores them in DuckDB, transforms them with dbt, orchestrates assets with Dagster, trains a Remaining Useful Life model with scikit-learn, logs training evidence to MLflow, serves predictions through FastAPI, and records prediction telemetry for monitoring.
+The primary application is hosted on the university server at `http://exp.s3.fsbm.ma:3402/`. The same FastAPI process serves the existing dashboard and all product API routes. Komodo manages the five-service Compose Stack on shared Server `vh3`.
 
-## Dataset
+## DataOps
 
-Primary source: NASA Turbofan Engine Degradation Simulation Data Set.
+The verified chain is NASA C-MAPSS download with SHA-256 validation, dlt ingestion, DuckDB storage, three dbt models, 11 dbt tests, causal feature generation, model training, MLflow registration, and monitoring output. dlt and DuckDB paths are explicit, and CI starts from empty temporary state.
 
-The final training run used all four subsets:
+## Model
 
-- FD001
-- FD002
-- FD003
-- FD004
-
-Raw dataset size used by training:
-
-- Training rows: 160,359
-- Test rows: 104,897
-- Training engines: 709
-- Test engines: 707
-
-Raw data is downloaded by `scripts/download_data.py` and is not committed to git.
-
-## DataOps Pipeline
-
-The local DataOps path is:
-
-```text
-NASA C-MAPSS files -> dlt -> DuckDB raw schema -> dbt staging -> dbt marts -> Dagster assets
-```
-
-Local verification command:
-
-```bash
-PYTHONPATH=src python orchestration/run_local.py
-```
-
-Verified locally:
-
-- dlt loaded the full FD001-FD004 raw data.
-- dbt created 3 models.
-- dbt passed 8 data tests.
-- pytest DataOps checks passed: 11 tests.
-
-## Modeling
-
-Final model: `HistGradientBoostingRegressor`
-
-Feature engineering:
-
-- operational settings
-- 21 raw sensor channels
-- 5-cycle rolling means
-- 5-cycle rolling standard deviations
-- 5-cycle rolling slopes
-- subset identifier
-- cycle
-
-Evaluation approach:
-
-- standard final-observed-cycle test metric per engine
-- online row-level metric as secondary evidence
-- mean baseline
-- cycle-only Ridge baseline
-- raw-feature Ridge baseline
-- raw-feature RandomForest baseline
-- final gradient boosting model
-
-Final standard test metrics:
-
+- Estimator: `HistGradientBoostingRegressor`
+- Training subsets: FD001, FD002, FD003, FD004
+- Features: 89
+- Standard final-cycle test engines: 707
 - MAE: 12.5568 cycles
 - RMSE: 16.9251 cycles
 - NASA asymmetric score: 4466.3383
 
-Training proof:
+Each training run stores metrics and `release_evaluation.json` in MLflow. A candidate receives the `champion` alias only when both final-cycle MAE and RMSE are no worse than the existing champion.
 
-- `reports/model_metrics/final_evaluation.json`
-- `reports/model_metrics/final_evaluation.md`
-- `reports/model_metrics/figures/final_model_comparison.png`
-- `notebooks/training_executed.ipynb`
+## Orchestration
+
+Dagster exposes seven ordered assets: dlt ingestion, dbt transformation, dbt tests, staging validation, mart validation, training and registration, and drift reporting. `final_mlops_job` runs during initialization. `daily_schedule` is enabled by default for 06:00 Africa/Casablanca, with `dagster-daemon` executing schedules.
 
 ## Serving
 
-FastAPI endpoints:
+The API loads the MLflow champion and validates requests against the 89-feature schema. The dashboard provides Fleet Overview, Engine Replay, operations and evaluation modes, Prediction Lab, CSV batch scoring, maintenance planning, platform evidence, monitoring, and project documentation.
 
-- `GET /health`
-- `POST /predict`
+## Release path
 
-The API loads `models/latest/model.pkl` and validates requests against `models/latest/feature_schema.json`. A missing model raises an error by default; fallback prediction is test-only behind `ALLOW_FALLBACK_MODEL=true`.
-
-Demo payload:
-
-```bash
-curl -X POST http://localhost:8000/predict \
-  -H "Content-Type: application/json" \
-  --data @demo/predict_sample.json
-```
-
-## Docker Reproducibility
-
-Professor-approved local deployment command:
-
-```bash
-docker compose up --build
-```
-
-Services:
-
-- `mlflow`
-- `training-init`
-- `api`
-- `dagster-webserver`
-- `dagster-daemon`
-
-## Monitoring
-
-Prediction telemetry is appended to:
-
-```text
-logs/prediction_logs.jsonl
-```
-
-Drift report command:
-
-```bash
-PYTHONPATH=src python scripts/generate_drift_report.py
-```
-
-Output:
-
-```text
-reports/monitoring/drift_report.json
-```
+GitHub CI runs ingestion, transformations, tests, training, linting, Docker configuration, builds, smoke inference, and secret scanning. Production deployment has an explicit approval gate. The Komodo Stack deployment is followed by automated checks of the dashboard, health, docs, release SHA, registry source, and a prediction.
 
 ## Limitations
 
-- NASA C-MAPSS is simulated, not live factory telemetry.
-- The risk level is threshold-based from predicted RUL, not a separate calibrated classifier.
-- Local Docker Compose replaces Oracle Cloud because the professor explicitly allowed local development first.
-- The final branch must still be merged into `main` after review.
+- C-MAPSS is simulation data, not live industrial telemetry.
+- The Three.js engine is explanatory, not a physics simulator.
+- Risk levels are thresholds on predicted RUL, not a separate calibrated classifier.
+- The drift signal measures predicted-RUL mean shift only.

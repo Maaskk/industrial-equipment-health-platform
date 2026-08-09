@@ -1,4 +1,3 @@
-import tomllib
 import unittest
 from pathlib import Path
 
@@ -39,29 +38,22 @@ class ProductionDeliveryTests(unittest.TestCase):
         for service_name in ("mlflow", "api", "dagster-webserver"):
             self.assertIn("healthcheck", compose["services"][service_name])
 
-    def test_komodo_resources_cover_delivery_and_operations(self):
+    def test_repository_does_not_declare_unowned_komodo_resources(self):
         resources_path = ROOT / "komodo" / "resources.toml"
-        resources = tomllib.loads(resources_path.read_text())
+        self.assertFalse(resources_path.exists())
 
-        required = {"server", "builder", "repo", "build", "stack", "procedure", "action"}
-        self.assertTrue(required.issubset(resources), set(resources))
+    def test_production_training_uses_all_four_cmapss_subsets(self):
+        compose_path = ROOT / "deploy" / "compose.production.yml"
+        compose_text = compose_path.read_text()
 
-        stack = resources["stack"][0]
-        self.assertEqual(stack["name"], "industrial-equipment-health-platform")
-        self.assertEqual(stack["config"]["server"], "industrial-health-host")
-        self.assertEqual(stack["config"]["file_paths"], ["deploy/compose.production.yml"])
-        self.assertIn("training-init", stack["config"]["ignore_services"])
-        self.assertTrue(stack["config"]["send_alerts"])
-        self.assertIn("DAGSTER_HOST_PORT = 3001", stack["config"]["environment"])
+        self.assertIn("TRAIN_SUBSETS: ${TRAIN_SUBSETS:-FD001 FD002 FD003 FD004}", compose_text)
 
-        server = resources["server"][0]
-        self.assertEqual(server["name"], "industrial-health-host")
-        self.assertNotIn("address", server["config"])
-        self.assertNotIn("external_address", server["config"])
+    def test_production_dashboard_links_are_configurable(self):
+        compose_path = ROOT / "deploy" / "compose.production.yml"
+        compose_text = compose_path.read_text()
 
-        action = resources["action"][0]
-        self.assertTrue(action["config"]["schedule_enabled"])
-        self.assertEqual(action["config"]["schedule_timezone"], "Africa/Casablanca")
+        self.assertIn("MLFLOW_PUBLIC_URL:", compose_text)
+        self.assertIn("DAGSTER_PUBLIC_URL:", compose_text)
 
     def test_production_ports_default_to_loopback_and_allow_configurable_bind(self):
         compose_path = ROOT / "deploy" / "compose.production.yml"
@@ -83,6 +75,24 @@ class ProductionDeliveryTests(unittest.TestCase):
         }
         for required in {".git", ".venv", "data", "models", "logs", "warehouse"}:
             self.assertIn(required, ignored)
+
+    def test_ci_uses_isolated_dataops_state_and_scans_secrets(self):
+        workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text()
+
+        self.assertIn("mktemp -d", workflow)
+        self.assertIn("DLT_DATA_DIR", workflow)
+        self.assertIn("gitleaks/gitleaks-action", workflow)
+
+    def test_release_workflow_has_approval_and_live_verification(self):
+        workflow_path = ROOT / ".github" / "workflows" / "release.yml"
+
+        self.assertTrue(workflow_path.exists())
+        workflow = workflow_path.read_text()
+        self.assertIn("environment: production", workflow)
+        self.assertIn("/health", workflow)
+        verifier = (ROOT / "scripts" / "verify_release.py").read_text()
+        self.assertIn('/predict"', verifier)
+        self.assertIn("model_source", verifier)
 
 
 if __name__ == "__main__":

@@ -14,6 +14,7 @@ import duckdb
 import mlflow
 import mlflow.sklearn
 from mlflow import MlflowClient
+from mlflow.exceptions import MlflowException
 import numpy as np
 import pandas as pd
 from sklearn.dummy import DummyRegressor
@@ -42,6 +43,47 @@ COLUMNS = (
 SENSOR_COLS = [f"sensor_{i}" for i in range(1, 22)]
 SETTING_COLS = [f"op_setting_{i}" for i in range(1, 4)]
 RAW_FEATURES = ["subset_id", "cycle", *SETTING_COLS, *SENSOR_COLS]
+
+
+def promotion_decision(
+    champion_metrics: dict[str, float] | None,
+    candidate_metrics: dict[str, float],
+) -> dict[str, bool | str]:
+    if champion_metrics is None:
+        return {"promote": True, "reason": "no_existing_champion"}
+    promote = (
+        float(candidate_metrics["mae"]) <= float(champion_metrics["mae"])
+        and float(candidate_metrics["rmse"]) <= float(champion_metrics["rmse"])
+    )
+    return {
+        "promote": promote,
+        "reason": (
+            "candidate_improved_mae_and_rmse"
+            if promote
+            else "candidate_did_not_improve_mae_and_rmse"
+        ),
+    }
+
+
+def current_champion(
+    client: MlflowClient, model_name: str, alias: str
+) -> tuple[dict[str, float] | None, str | None, str | None]:
+    try:
+        version = client.get_model_version_by_alias(model_name, alias)
+        run = client.get_run(version.run_id)
+    except MlflowException:
+        return None, None, None
+    metrics = run.data.metrics
+    if "standard_final_mae" not in metrics or "standard_final_rmse" not in metrics:
+        return None, str(version.version), version.run_id
+    return (
+        {
+            "mae": float(metrics["standard_final_mae"]),
+            "rmse": float(metrics["standard_final_rmse"]),
+        },
+        str(version.version),
+        version.run_id,
+    )
 
 
 def load_raw(path: Path) -> pd.DataFrame:
@@ -248,6 +290,70 @@ def write_json(path: Path, payload: object) -> None:
     path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
+def build_release_manifest(
+    *,
+    generated_at: str,
+    git_sha: str,
+    git_tag: str,
+    git_branch: str,
+    model_name: str,
+    model_alias: str,
+    model_version: str,
+    run_id: str,
+    subsets: list[str],
+    final_metrics: dict[str, float],
+    promotion: dict[str, bool | str],
+) -> dict[str, object]:
+    return {
+        "git_sha": git_sha,
+        "git_tag": git_tag,
+        "branch": git_branch,
+        "deployment_time": generated_at,
+        "model_name": model_name,
+        "model_version": model_version,
+        "mlflow_run_id": run_id,
+        "model_alias": model_alias,
+        "training_subsets": subsets,
+        "mae": float(final_metrics["mae"]),
+        "rmse": float(final_metrics["rmse"]),
+        "nasa_score": float(final_metrics["nasa_score"]),
+        "candidate_promoted": bool(promotion["promote"]),
+        "promotion_reason": str(promotion["reason"]),
+    }
+
+
+def write_release_manifest(
+    release_dir: Path, manifest: dict[str, object]
+) -> tuple[Path, Path]:
+    json_path = release_dir / "final_release.json"
+    markdown_path = release_dir / "final_release.md"
+    write_json(json_path, manifest)
+
+    lines = [
+        "# Production Release",
+        "",
+        f"Deployment time (UTC): {manifest['deployment_time']}",
+        "",
+        "| Field | Value |",
+        "| --- | --- |",
+        f"| Git branch | {manifest['branch']} |",
+        f"| Git tag | {manifest['git_tag']} |",
+        f"| Git SHA | {manifest['git_sha']} |",
+        f"| Model | {manifest['model_name']} |",
+        f"| Model alias | {manifest['model_alias']} |",
+        f"| Model version | {manifest['model_version']} |",
+        f"| MLflow run | {manifest['mlflow_run_id']} |",
+        f"| Training subsets | {', '.join(manifest['training_subsets'])} |",
+        f"| Final cycle MAE | {float(manifest['mae']):.4f} |",
+        f"| Final cycle RMSE | {float(manifest['rmse']):.4f} |",
+        f"| Candidate promoted | {str(manifest['candidate_promoted']).lower()} |",
+        "",
+    ]
+    markdown_path.parent.mkdir(parents=True, exist_ok=True)
+    markdown_path.write_text("\n".join(lines), encoding="utf-8")
+    return json_path, markdown_path
+
+
 def write_markdown_report(path: Path, metrics: dict[str, object]) -> None:
     final = metrics["models"]["final_gradient_boosting"]["standard_final_cycle_metrics"]
     online = metrics["models"]["final_gradient_boosting"]["online_metrics"]
@@ -257,7 +363,7 @@ def write_markdown_report(path: Path, metrics: dict[str, object]) -> None:
         "The final model trains on NASA C-MAPSS FD001-FD004 when all files are present.",
         "The primary score is the standard final-observed-cycle test evaluation per engine.",
         "",
-        "## Final Model",
+        "## Selected Estimator",
         "",
         f"- Model: {metrics['final_model_type']}",
         f"- Feature count: {metrics['feature_count']}",
@@ -409,6 +515,15 @@ def train(args: argparse.Namespace) -> dict[str, object]:
     demo_payload_path = Path("demo/predict_sample.json")
     notebook_path = Path("notebooks/training_executed.ipynb")
 
+    model_name = os.getenv("MODEL_NAME", "industrial-equipment-health-model")
+    model_alias = os.getenv("MODEL_ALIAS", "champion")
+    registry_client = MlflowClient()
+    champion_metrics, champion_version, champion_run_id = current_champion(
+        registry_client, model_name, model_alias
+    )
+    final_metrics = model_results["final_gradient_boosting"]["standard_final_cycle_metrics"]
+    promotion = promotion_decision(champion_metrics, final_metrics)
+
     print(f"logging final run to MLflow at {tracking_uri}")
     with mlflow.start_run(run_name="final-cmapss-rul-training") as run:
         mlflow.log_params(
@@ -420,7 +535,6 @@ def train(args: argparse.Namespace) -> dict[str, object]:
                 "feature_count": len(features),
             }
         )
-        final_metrics = model_results["final_gradient_boosting"]["standard_final_cycle_metrics"]
         mlflow.log_metrics(
             {
                 "standard_final_mae": final_metrics["mae"],
@@ -430,7 +544,25 @@ def train(args: argparse.Namespace) -> dict[str, object]:
                 "online_rmse": model_results["final_gradient_boosting"]["online_metrics"]["rmse"],
             }
         )
-        model_name = os.getenv("MODEL_NAME", "industrial-equipment-health-model")
+        mlflow.log_dict(
+            {
+                "generated_at_utc": generated_at,
+                "model_type": "HistGradientBoostingRegressor",
+                "training_subsets": args.subsets,
+                "standard_final_cycle_metrics": final_metrics,
+                "promotion": promotion,
+                "previous_champion_version": champion_version,
+                "previous_champion_run_id": champion_run_id,
+            },
+            "release_evaluation.json",
+        )
+        mlflow.set_tags(
+            {
+                "model_alias_candidate": model_alias,
+                "promotion_decision": str(promotion["promote"]).lower(),
+                "promotion_reason": str(promotion["reason"]),
+            }
+        )
         model_info = mlflow.sklearn.log_model(
             final_pipeline,
             artifact_path="model",
@@ -441,8 +573,8 @@ def train(args: argparse.Namespace) -> dict[str, object]:
         run_id = run.info.run_id
 
     registered_version = str(model_info.registered_model_version)
-    model_alias = os.getenv("MODEL_ALIAS", "champion")
-    MlflowClient().set_registered_model_alias(model_name, model_alias, registered_version)
+    if promotion["promote"]:
+        registry_client.set_registered_model_alias(model_name, model_alias, registered_version)
 
     metrics = {
         "generated_at_utc": generated_at,
@@ -472,6 +604,13 @@ def train(args: argparse.Namespace) -> dict[str, object]:
             "registered_model_version": registered_version,
             "registered_model_alias": model_alias,
             "model_uri": f"models:/{model_name}@{model_alias}",
+        },
+        "promotion": {
+            **promotion,
+            "candidate_version": registered_version,
+            "previous_champion_version": champion_version,
+            "previous_champion_run_id": champion_run_id,
+            "criteria": "candidate MAE and RMSE must both be no worse than champion",
         },
         "artifacts": {
             "model": model_path.as_posix(),
@@ -506,10 +645,25 @@ def train(args: argparse.Namespace) -> dict[str, object]:
     write_markdown_report(report_path, metrics)
     write_model_comparison_plot(figure_path, model_results)
     write_demo_payload(demo_payload_path, final_test, features)
+    release_manifest = build_release_manifest(
+        generated_at=generated_at,
+        git_sha=os.getenv("RELEASE_SHA", "unrecorded"),
+        git_tag=os.getenv("RELEASE_TAG", "unreleased"),
+        git_branch=os.getenv("RELEASE_BRANCH", "production"),
+        model_name=model_name,
+        model_alias=model_alias,
+        model_version=registered_version,
+        run_id=run_id,
+        subsets=args.subsets,
+        final_metrics=final_metrics,
+        promotion=promotion,
+    )
+    write_release_manifest(Path("reports/release"), release_manifest)
     print(f"trained final model: {model_path}")
     print(f"standard final MAE: {model_results['final_gradient_boosting']['standard_final_cycle_metrics']['mae']:.4f}")
     print(f"mlflow run id: {run_id}")
-    print(f"registered model: {model_name} version {registered_version} alias {model_alias}")
+    print(f"registered model: {model_name} version {registered_version}")
+    print(f"champion promotion: {promotion['promote']} ({promotion['reason']})")
     return metrics
 
 

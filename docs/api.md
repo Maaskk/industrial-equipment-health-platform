@@ -1,6 +1,6 @@
 # API Demo Guide
 
-The FastAPI service serves the trained NASA C-MAPSS Remaining Useful Life model.
+The FastAPI service serves the existing dashboard and the trained NASA C-MAPSS Remaining Useful Life model. Production is available at `http://exp.s3.fsbm.ma:3402/`.
 
 ## Startup Contract
 
@@ -32,6 +32,10 @@ Expected fields:
 - `feature_count`: number of features expected by the trained model.
 - `mlflow_tracking_uri`: tracking backend used by training.
 - `monitoring_log_path`: JSONL prediction log location.
+- `release_sha`: deployed Git commit.
+- `release_tag`: deployed immutable tag.
+
+Production acceptance requires `model_source: mlflow_registry`; the local pickle path is used only for local reproduction and tests.
 
 ## Prediction
 

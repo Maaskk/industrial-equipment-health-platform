@@ -1,54 +1,36 @@
-# Monitoring and Observability
+# Monitoring
 
-Owner: `Maaskk`
+## Signals
 
-This project uses a simple monitoring layer that is easy to explain during the demo and easy to replace later with Prometheus, Grafana, or Evidently.
+| Signal | Evidence |
+|---|---|
+| API readiness | `GET /health` |
+| Release identity | `release_sha` and `release_tag` in `/health` |
+| Registry identity | model name, resolved version, source, and URI in `/health` |
+| Prediction result | RUL, risk, model version, and latency |
+| Request trace | `X-Request-ID` response header |
+| Prediction history | persistent `logs/prediction_logs.jsonl` |
+| Distribution change | `/api/monitoring/summary` and drift report |
 
-## What We Monitor
+## Drift rule
 
-| Signal | Why it matters | Current implementation |
-|---|---|---|
-| Service availability | Proves the API is alive and loaded a real model | `GET /health` returns `status`, `model_loaded`, `model_source`, feature counts, MLflow URI |
-| Response latency | Shows serving performance | `latency_ms` in each prediction response |
-| Prediction logs | Creates traceability | `logs/prediction_logs.jsonl` |
-| Model version | Shows registry discipline | `model_version` in health and prediction responses |
-| Simple drift | Detects prediction distribution shift | `scripts/generate_drift_report.py` using `industrial_health.mlops.drift` |
+The current signal compares mean predicted RUL between the first and second halves of the observation window. It requires at least eight records and four distinct engine/cycle/prediction signatures.
 
-## Prediction Log Format
-
-Each prediction appends one JSON line:
+When those conditions are not met, the API returns:
 
 ```json
 {
-  "timestamp_utc": "2026-06-23T10:00:00+00:00",
-  "engine_id": "engine_001",
-  "remaining_useful_life": 24.25,
-  "risk_level": "high",
-  "model_version": "1",
-  "latency_ms": 8.4
+  "status": "insufficient_data",
+  "drift_detected": null
 }
 ```
 
-## Drift Demo
+Repeated identical predictions cannot produce a `no drift` result. The ready report records the sample count, unique count, split sizes, metric, threshold, result, and UTC timestamp.
 
-Generate a drift report:
+Generate the stored report with:
 
 ```bash
-PYTHONPATH=src python scripts/generate_drift_report.py
+python scripts/generate_drift_report.py
 ```
 
-Output is saved to:
-
-```text
-reports/monitoring/drift_report.json
-```
-
-If the prediction log has at least four rows, the script compares the first half against the second half. If the log is still empty during a rehearsal, it writes a transparent demo report using documented sample values. This is intentionally simple enough to explain during the course demo and can later be upgraded to Evidently, Prometheus, or Grafana.
-
-## Operational Expectations
-
-- `/health` must return `model_source: mlflow_registry` for the Komodo demo.
-- `ALLOW_FALLBACK_MODEL=true` is only allowed in unit tests.
-- Each `/predict` call must append one JSONL line.
-- A failed model load should stop the API instead of serving fake predictions.
-- The final release should include `reports/model_metrics/final_evaluation.json`, `notebooks/training_executed.ipynb`, and at least one `reports/monitoring/drift_report.json` generated during rehearsal.
+This is a predicted-RUL mean-shift indicator. It is not feature drift, concept drift, or a statistical production alerting system.

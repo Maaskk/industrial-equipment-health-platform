@@ -2,11 +2,13 @@
 Tests unitaires — DataOps Infrastructure
 Mohamed Kar1 — feature/mohamed-kar1-dataops-infra
 """
+import os
+
 import pytest
 import duckdb
 from pathlib import Path
 
-DB_PATH = Path(__file__).parent.parent / "cmapss_ingestion.duckdb"
+DB_PATH = Path(os.getenv("DUCKDB_PATH", Path(__file__).parent.parent / "cmapss_ingestion.duckdb"))
 
 
 def get_connection():

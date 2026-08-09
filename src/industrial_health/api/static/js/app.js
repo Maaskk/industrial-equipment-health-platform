@@ -343,7 +343,9 @@ async function loadPlatform() {
       "Median latency": monitor.median_latency_ms === null ? "No observations available" : `${monitor.median_latency_ms} ms`,
       "P95 latency": monitor.p95_latency_ms === null ? "No observations available" : `${monitor.p95_latency_ms} ms`,
       "Risk distribution": Object.entries(monitor.risk_counts).map(([key,value]) => `${key}: ${value}`).join(" / "),
-      "Drift status": typeof monitor.drift === "string" ? monitor.drift : (monitor.drift.drift_detected ? "Mean shift detected" : "No threshold breach"),
+      "Drift status": monitor.drift.status === "insufficient_data"
+        ? `Insufficient observations (${monitor.drift.sample_count} samples, ${monitor.drift.unique_observations} unique)`
+        : (monitor.drift.drift_detected ? "Mean shift detected" : "No threshold breach"),
     };
     $("monitoring-info").replaceChildren(...Object.entries(monitorValues).map(([key,value]) => detail(key,value)));
     renderMonitoringLog(monitor.recent);

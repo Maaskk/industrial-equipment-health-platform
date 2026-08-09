@@ -1,13 +1,21 @@
 {
-  "generated_at_utc": "2026-07-10T13:22:19.928625+00:00",
-  "metric": {
-    "absolute_mean_shift": 38.5,
-    "baseline_mean": 106.25,
-    "baseline_std": 9.601432,
-    "current_mean": 67.75,
-    "current_std": 5.931905,
-    "drift_detected": true,
-    "feature_name": "remaining_useful_life"
+  "drift": {
+    "absolute_mean_shift": 3.908516,
+    "baseline_count": 13,
+    "baseline_mean": 123.999231,
+    "baseline_std": 0.226154,
+    "current_count": 14,
+    "current_mean": 120.090714,
+    "current_std": 7.158156,
+    "drift_detected": false,
+    "feature_name": "predicted_rul",
+    "generated_at_utc": "2026-08-09T14:32:57.127547+00:00",
+    "mean_shift_threshold": 20.0,
+    "metric": "predicted_rul_mean_shift",
+    "sample_count": 27,
+    "status": "ready",
+    "unique_observations": 14
   },
-  "source": "demo_values_when_prediction_log_has_fewer_than_4_rows"
+  "generated_at_utc": "2026-08-09T14:32:57.127013+00:00",
+  "source": "logs/prediction_logs.jsonl"
 }

@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 
 from industrial_health.api.contracts import build_prediction_response
-from industrial_health.mlops.drift import compute_numeric_drift
+from industrial_health.mlops.drift import evaluate_prediction_drift
 from industrial_health.mlops.monitoring import PredictionMonitor
 
 
@@ -429,7 +429,7 @@ class EngineDataService:
                 "median_latency_ms": None,
                 "p95_latency_ms": None,
                 "risk_counts": {"low": 0, "medium": 0, "high": 0},
-                "drift": "Insufficient production observations",
+                "drift": evaluate_prediction_drift([]),
                 "recent": [],
             }
         records = []
@@ -453,16 +453,7 @@ class EngineDataService:
                 round(current_rul - previous, 2) if previous is not None else None
             )
             previous_by_engine[engine_id] = current_rul
-        drift: str | dict[str, Any] = "Insufficient production observations"
-        if len(records) >= 4:
-            midpoint = len(records) // 2
-            report = compute_numeric_drift(
-                baseline=[float(row["remaining_useful_life"]) for row in records[:midpoint]],
-                current=[float(row["remaining_useful_life"]) for row in records[midpoint:]],
-                feature_name="predicted_rul",
-                mean_shift_threshold=10.0,
-            )
-            drift = report.to_dict()
+        drift = evaluate_prediction_drift(records)
         return {
             "total_predictions": len(records),
             "successful_predictions": len(records),

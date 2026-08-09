@@ -6,6 +6,7 @@ __pycache__/
 .mypy_cache/
 .venv/
 venv/
+.dlt/
 
 # Data and model artifacts
 data/raw/*
