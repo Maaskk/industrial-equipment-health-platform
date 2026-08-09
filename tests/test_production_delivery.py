@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class ProductionDeliveryTests(unittest.TestCase):
-    def test_production_compose_uses_published_image_and_persistent_volumes(self):
+    def test_production_compose_builds_shared_image_and_uses_persistent_volumes(self):
         compose_path = ROOT / "deploy" / "compose.production.yml"
         compose = yaml.safe_load(compose_path.read_text())
 
@@ -27,7 +27,11 @@ class ProductionDeliveryTests(unittest.TestCase):
                 service["image"],
                 "${APP_IMAGE:-industrial-equipment-health-platform:latest}",
             )
-            self.assertNotIn("build", service)
+            self.assertEqual(
+                service["build"],
+                {"context": "..", "dockerfile": "Dockerfile"},
+            )
+            self.assertEqual(service["pull_policy"], "never")
             for volume in service.get("volumes", []):
                 self.assertFalse(volume.startswith("./"), volume)
 
@@ -59,14 +63,14 @@ class ProductionDeliveryTests(unittest.TestCase):
         self.assertTrue(action["config"]["schedule_enabled"])
         self.assertEqual(action["config"]["schedule_timezone"], "Africa/Casablanca")
 
-    def test_production_ports_are_loopback_only_and_configurable(self):
+    def test_production_ports_default_to_loopback_and_allow_configurable_bind(self):
         compose_path = ROOT / "deploy" / "compose.production.yml"
         compose = yaml.safe_load(compose_path.read_text())
 
         expected_ports = {
-            "mlflow": "127.0.0.1:${MLFLOW_HOST_PORT:-5000}:5000",
-            "api": "127.0.0.1:${API_HOST_PORT:-8000}:8000",
-            "dagster-webserver": "127.0.0.1:${DAGSTER_HOST_PORT:-3000}:3000",
+            "mlflow": "${HOST_BIND_IP:-127.0.0.1}:${MLFLOW_HOST_PORT:-5000}:5000",
+            "api": "${HOST_BIND_IP:-127.0.0.1}:${API_HOST_PORT:-8000}:8000",
+            "dagster-webserver": "${HOST_BIND_IP:-127.0.0.1}:${DAGSTER_HOST_PORT:-3000}:3000",
         }
         for service_name, expected_port in expected_ports.items():
             self.assertEqual(
