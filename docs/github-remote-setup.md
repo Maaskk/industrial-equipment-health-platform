@@ -21,7 +21,7 @@ Predictive maintenance MLOps and DataOps platform for industrial equipment healt
 After the GitHub repository exists:
 
 ```bash
-cd /Users/oussamaashad/Documents/Codex/2026-06-23/thi/outputs/industrial-equipment-health-platform
+cd /workspace/industrial-equipment-health-platform
 git remote add origin https://github.com/Maaskk/industrial-equipment-health-platform.git
 git push -u origin main
 git push origin --all
