@@ -2,7 +2,17 @@
 name = "industrial-equipment-health-platform"
 version = "0.1.0"
 description = "Predictive maintenance MLOps and DataOps project."
-requires-python = ">=3.11"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "duckdb==1.5.4",
+  "scikit-learn==1.9.0",
+  "scipy==1.18.0",
+  "pandas==2.3.3",
+  "numpy==2.5.1",
+  "fastapi==0.138.0",
+  "uvicorn==0.49.0",
+  "joblib==1.5.3",
+]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
@@ -22,3 +32,6 @@ exclude = [
   "warehouse",
   "*.ipynb",
 ]
+
+[tool.vercel]
+entrypoint = "app:app"

@@ -49,6 +49,15 @@ This starts:
 - Dagster webserver: http://localhost:3000
 - `training-init`, which downloads NASA C-MAPSS and executes the full Dagster job: dlt, dbt, tests, a genuinely executed training notebook, MLflow registration, and monitoring evidence.
 
+## Vercel Deployment
+
+Import this GitHub repository into Vercel. `app.py` is the ASGI entrypoint and
+`deploy/vercel/` contains a compact, read-only serving warehouse and the exact trained
+model artifacts produced by the full local pipeline. Regenerate that bundle with
+`PYTHONPATH=src python scripts/build_vercel_artifacts.py`. Runtime monitoring logs use
+Vercel's writable `/tmp` directory and are therefore ephemeral; durable monitoring and
+all training/orchestration services remain part of the local Docker deployment.
+
 For a direct local Python run:
 
 ```bash
@@ -69,6 +78,20 @@ curl -X POST http://localhost:8000/predict \
   -H "Content-Type: application/json" \
   --data @demo/predict_sample.json
 ```
+
+The dashboard is an engineering console, not a live-aircraft display. It replays the
+NASA C-MAPSS test trajectories stored in DuckDB and performs real server-side feature
+engineering and model inference. Its five views cover fleet triage, cycle-by-cycle
+engine replay, single/batch prediction, platform evidence, and project documentation.
+Operations mode deliberately hides future ground truth; Evaluation mode exposes actual
+RUL and prediction error for academic validation.
+
+Engine Replay includes a locally bundled Three.js cutaway turbofan observatory. Its fan,
+compressor, combustor, turbine, exhaust, airflow particles, sensor beacons, risk lighting,
+camera focus, and exploded view respond to the selected dataset cycle. These are
+explanatory visual mappings, not a physically validated engine simulation.
+
+![Engine degradation observatory](docs/screenshots/engine-observatory.png)
 
 ## Final Training Proof
 
@@ -149,6 +172,8 @@ Detailed task files are in [`team/`](team/).
 - FastAPI service exposing:
   - `GET /health`
   - `POST /predict`
+  - dataset-backed fleet, replay, batch scoring, model, monitoring, and maintenance
+    endpoints under `/api`
 - Docker containerization.
 - GitHub Actions CI/CD. The active workflow is stored in [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 - Monitoring for service health, latency, ML metrics, and drift.
