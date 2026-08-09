@@ -24,7 +24,6 @@ warehouse/
 *.db
 *.parquet
 *.csv
-!deploy/vercel/serving.duckdb
 
 # Local config
 .env
