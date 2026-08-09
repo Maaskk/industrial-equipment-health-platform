@@ -27,7 +27,7 @@ Expected fields:
 
 - `status`: `ready` when a real local model is loaded.
 - `model_loaded`: `true` after startup succeeds.
-- `model_source`: `local_pickle` for the trained artifact, `fallback` only in explicit tests.
+- `model_source`: `mlflow_registry` in Komodo, `local_pickle` for a local trained artifact, and `fallback` only in explicit tests.
 - `model_version`: model version served by the API.
 - `feature_count`: number of features expected by the trained model.
 - `mlflow_tracking_uri`: tracking backend used by training.

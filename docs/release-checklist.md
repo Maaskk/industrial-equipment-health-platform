@@ -34,4 +34,4 @@ Repository: https://github.com/Maaskk/industrial-equipment-health-platform
 - Do not commit raw NASA data files.
 - Do not submit or store Google Form passwords in the repo.
 - Do not merge to `main` until Docker and API smoke pass.
-- Demo must use `model_source: local_pickle`; `fallback` is test-only.
+- The Komodo demo must use `model_source: mlflow_registry`; `fallback` is test-only.

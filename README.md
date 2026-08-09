@@ -44,19 +44,17 @@ This starts:
 
 - MLflow tracking server: http://localhost:5000
 - FastAPI service: http://localhost:8000
-- Equipment health dashboard: http://localhost:8000
 - FastAPI docs: http://localhost:8000/docs
 - Dagster webserver: http://localhost:3000
 - `training-init`, which downloads NASA C-MAPSS and executes the full Dagster job: dlt, dbt, tests, a genuinely executed training notebook, MLflow registration, and monitoring evidence.
 
 ## Vercel Deployment
 
-Import this GitHub repository into Vercel. `app.py` is the ASGI entrypoint and
-`deploy/vercel/` contains a compact, read-only serving warehouse and the exact trained
-model artifacts produced by the full local pipeline. Regenerate that bundle with
-`PYTHONPATH=src python scripts/build_vercel_artifacts.py`. Runtime monitoring logs use
-Vercel's writable `/tmp` directory and are therefore ephemeral; durable monitoring and
-all training/orchestration services remain part of the local Docker deployment.
+The public application is available at
+https://industrial-equipment-health-platfor.vercel.app/. `app.py` serves the existing
+interface and forwards its API requests to the Komodo deployment. Model loading,
+prediction logging, MLflow, and Dagster remain on the managed server. The Vercel
+deployment does not contain a second model or warehouse.
 
 For a direct local Python run:
 
@@ -79,7 +77,7 @@ curl -X POST http://localhost:8000/predict \
   --data @demo/predict_sample.json
 ```
 
-The dashboard is an engineering console, not a live-aircraft display. It replays the
+The public application is an engineering console, not a live-aircraft display. It replays the
 NASA C-MAPSS test trajectories stored in DuckDB and performs real server-side feature
 engineering and model inference. Its five views cover fleet triage, cycle-by-cycle
 engine replay, single/batch prediction, platform evidence, and project documentation.

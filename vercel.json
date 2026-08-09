@@ -3,7 +3,8 @@
   "functions": {
     "app.py": {
       "maxDuration": 300,
-      "includeFiles": "{src/**,deploy/vercel/**}"
+      "includeFiles": "src/**",
+      "excludeFiles": "{tests/**,docs/**,data/**,models/**,mlruns/**,mlartifacts/**,warehouse/**,notebooks/**,reports/**,demo/**,orchestration/**,ml-modeling/**,deploy/**,scripts/**}"
     }
   }
 }
