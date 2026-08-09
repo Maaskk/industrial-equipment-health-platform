@@ -19,6 +19,8 @@ class PredictionMonitor:
         risk_level: str,
         model_version: str,
         latency_ms: float,
+        cycle: int | None = None,
+        subset: str | None = None,
     ) -> None:
         self.log_path.parent.mkdir(parents=True, exist_ok=True)
         row = {
@@ -29,6 +31,9 @@ class PredictionMonitor:
             "model_version": model_version,
             "latency_ms": float(latency_ms),
         }
+        if cycle is not None:
+            row["cycle"] = int(cycle)
+        if subset is not None:
+            row["subset"] = subset
         with self.log_path.open("a", encoding="utf-8") as file:
             file.write(json.dumps(row, sort_keys=True) + "\n")
-

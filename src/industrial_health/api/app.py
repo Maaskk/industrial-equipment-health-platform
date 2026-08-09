@@ -4,8 +4,14 @@ import time
 from pathlib import Path
 from typing import Any
 
-from industrial_health.api.contracts import build_prediction_response
-from industrial_health.api.dashboard import DASHBOARD_HTML
+from industrial_health.api.contracts import build_prediction_response, build_service_info
+from industrial_health.api.data_service import (
+    CycleNotFoundError,
+    DatasetUnavailableError,
+    EngineDataService,
+    EngineNotFoundError,
+    InsufficientHistoryError,
+)
 from industrial_health.mlops.model_loader import env_flag, load_model
 from industrial_health.mlops.model_registry import ModelMetadata, resolve_model_uri
 from industrial_health.mlops.monitoring import PredictionMonitor
@@ -38,6 +44,14 @@ def read_feature_schema(schema_path: Path) -> list[str]:
     return required
 
 
+def resolve_duckdb_path() -> Path:
+    configured = os.getenv("DUCKDB_PATH")
+    if configured:
+        return Path(configured)
+    candidates = [Path("warehouse/cmapss_ingestion.duckdb"), Path("cmapss_ingestion.duckdb")]
+    return next((path for path in candidates if path.exists()), candidates[0])
+
+
 def create_app(
     *,
     model_path: Path | None = None,
@@ -51,14 +65,24 @@ def create_app(
     run even before dependencies are installed locally.
     """
 
-    from fastapi import FastAPI, HTTPException
-    from fastapi.responses import HTMLResponse
+    from fastapi import FastAPI, HTTPException, Query
     from pydantic import BaseModel, Field
 
     class PredictionRequest(BaseModel):
         engine_id: str = Field(..., examples=["engine_001"])
         cycle: int = Field(..., ge=0, examples=[120])
         features: dict[str, float] = Field(default_factory=dict)
+
+    class ReplayRequest(BaseModel):
+        mode: str = Field(default="operations", pattern="^(operations|evaluation)$")
+
+    class BatchRequest(BaseModel):
+        csv_text: str = Field(..., min_length=1)
+
+    class MaintenanceRequest(BaseModel):
+        predicted_rul: float = Field(..., ge=0)
+        average_cycles_per_day: float = Field(..., gt=0)
+        safety_margin_cycles: float = Field(..., ge=0)
 
     app = FastAPI(
         title="Industrial Equipment Health Platform",
@@ -96,10 +120,26 @@ def create_app(
         model_version = str(model_metadata.get("model_version") or metadata.version)
     model_source = "mlflow_registry" if registry_uri else ("local_pickle" if resolved_model_path.exists() else "fallback")
     monitor = PredictionMonitor(resolved_monitor_path)
+    data_service = EngineDataService(
+        db_path=resolve_duckdb_path(),
+        model=model,
+        model_version=model_version,
+        monitor=monitor,
+        metrics_path=Path(os.getenv("MODEL_METRICS_PATH", "models/latest/metrics.json")),
+        drift_path=Path(os.getenv("DRIFT_REPORT_PATH", "reports/monitoring/drift_report.json")),
+    )
+    app.state.data_service = data_service
 
-    @app.get("/", response_class=HTMLResponse, include_in_schema=False)
-    def dashboard() -> str:
-        return DASHBOARD_HTML
+    def data_error(exc: Exception) -> HTTPException:
+        if isinstance(exc, (EngineNotFoundError, CycleNotFoundError)):
+            return HTTPException(status_code=404, detail=str(exc))
+        if isinstance(exc, (InsufficientHistoryError, ValueError)):
+            return HTTPException(status_code=422, detail=str(exc))
+        return HTTPException(status_code=503, detail=str(exc))
+
+    @app.get("/", include_in_schema=False)
+    def service_info() -> dict[str, str]:
+        return build_service_info()
 
     @app.get("/demo-payload")
     def demo_payload() -> dict[str, object]:
@@ -115,6 +155,153 @@ def create_app(
             return []
         lines = resolved_monitor_path.read_text(encoding="utf-8").splitlines()[-bounded_limit:]
         return [json.loads(line) for line in lines if line.strip()]
+
+    @app.get("/api/fleet/summary")
+    def fleet_summary() -> dict[str, object]:
+        try:
+            return data_service.fleet_summary()
+        except DatasetUnavailableError as exc:
+            raise data_error(exc) from exc
+
+    @app.get("/api/fleet/engines")
+    def fleet_engines(
+        subset: str | None = None,
+        risk: str | None = None,
+        search: str | None = None,
+        sort: str = Query(default="rul", pattern="^(rul|engine|cycle)$"),
+    ) -> list[dict[str, object]]:
+        try:
+            rows = data_service.fleet()
+        except DatasetUnavailableError as exc:
+            raise data_error(exc) from exc
+        if subset:
+            rows = [row for row in rows if row["subset"] == subset.upper()]
+        if risk:
+            rows = [row for row in rows if row["risk_level"] == risk.lower()]
+        if search:
+            rows = [row for row in rows if search.upper() in str(row["engine_id"]).upper()]
+        key = {
+            "rul": lambda row: float(row["remaining_useful_life"]),
+            "engine": lambda row: str(row["engine_id"]),
+            "cycle": lambda row: int(row["latest_cycle"]),
+        }[sort]
+        return sorted(rows, key=key)
+
+    @app.get("/api/engines")
+    def engines(subset: str | None = None) -> list[dict[str, object]]:
+        try:
+            return data_service.engines(subset)
+        except (DatasetUnavailableError, ValueError) as exc:
+            raise data_error(exc) from exc
+
+    @app.get("/api/engines/{engine_id}")
+    def engine_detail(
+        engine_id: str, cycle: int | None = None, mode: str = "operations"
+    ) -> dict[str, object]:
+        try:
+            return data_service.engine_detail(
+                engine_id, cycle, evaluation=mode == "evaluation"
+            )
+        except (
+            DatasetUnavailableError,
+            EngineNotFoundError,
+            CycleNotFoundError,
+            InsufficientHistoryError,
+            ValueError,
+        ) as exc:
+            raise data_error(exc) from exc
+
+    @app.get("/api/engines/{engine_id}/cycles")
+    def engine_cycles(engine_id: str) -> dict[str, object]:
+        try:
+            return data_service.cycles(engine_id)
+        except (DatasetUnavailableError, EngineNotFoundError) as exc:
+            raise data_error(exc) from exc
+
+    @app.get("/api/engines/{engine_id}/cycle/{cycle}")
+    def engine_cycle(
+        engine_id: str,
+        cycle: int,
+        sensors: str = "sensor_2,sensor_3,sensor_11",
+        normalized: bool = False,
+    ) -> dict[str, object]:
+        try:
+            return data_service.sensor_series(
+                engine_id,
+                cycle,
+                [value.strip() for value in sensors.split(",")],
+                normalized,
+            )
+        except (
+            DatasetUnavailableError,
+            EngineNotFoundError,
+            CycleNotFoundError,
+        ) as exc:
+            raise data_error(exc) from exc
+
+    @app.post("/api/engines/{engine_id}/cycle/{cycle}/predict")
+    def replay_prediction(
+        engine_id: str, cycle: int, payload: ReplayRequest
+    ) -> dict[str, object]:
+        try:
+            return data_service.predict_cycle(
+                engine_id, cycle, include_truth=payload.mode == "evaluation"
+            )
+        except (
+            DatasetUnavailableError,
+            EngineNotFoundError,
+            CycleNotFoundError,
+            InsufficientHistoryError,
+            ValueError,
+        ) as exc:
+            raise data_error(exc) from exc
+
+    @app.post("/api/predict/batch")
+    def batch_prediction(payload: BatchRequest) -> dict[str, object]:
+        try:
+            rows, csv_output = data_service.score_csv(payload.csv_text)
+        except ValueError as exc:
+            raise data_error(exc) from exc
+        return {"rows": rows, "csv": csv_output}
+
+    @app.get("/api/model/info")
+    def model_info() -> dict[str, object]:
+        return data_service.model_info()
+
+    @app.get("/api/platform/status")
+    def platform_status() -> dict[str, object]:
+        try:
+            return data_service.platform_status()
+        except DatasetUnavailableError as exc:
+            raise data_error(exc) from exc
+
+    @app.get("/api/monitoring/summary")
+    def monitoring_summary() -> dict[str, object]:
+        return data_service.monitoring_summary()
+
+    @app.get("/api/drift/latest")
+    def latest_drift() -> dict[str, object]:
+        summary = data_service.monitoring_summary()
+        return {"drift": summary["drift"]}
+
+    @app.post("/api/maintenance/plan")
+    def maintenance_plan(payload: MaintenanceRequest) -> dict[str, object]:
+        service_cycles = max(0.0, payload.predicted_rul - payload.safety_margin_cycles)
+        days = service_cycles / payload.average_cycles_per_day
+        priority = "high" if service_cycles <= 15 else "medium" if service_cycles <= 45 else "low"
+        return {
+            "maximum_cycles_before_service": round(service_cycles, 1),
+            "estimated_operating_days": round(days, 1),
+            "priority": priority,
+            "recommendation": (
+                "Plan service immediately"
+                if priority == "high"
+                else "Reserve an inspection window"
+                if priority == "medium"
+                else "Continue operation and monitor"
+            ),
+            "utilization_assumption": payload.average_cycles_per_day,
+        }
 
     @app.get("/health")
     def health() -> dict[str, object]:

@@ -3,6 +3,17 @@ from __future__ import annotations
 from industrial_health.mlops.risk import classify_risk
 
 
+def build_service_info() -> dict[str, str]:
+    """Return the stable metadata exposed at the API root."""
+
+    return {
+        "service": "industrial-equipment-health-api",
+        "status": "ready",
+        "documentation": "/docs",
+        "health": "/health",
+    }
+
+
 def build_prediction_response(
     *,
     engine_id: str,
@@ -21,4 +32,3 @@ def build_prediction_response(
         "model_version": model_version,
         "latency_ms": rounded_latency,
     }
-

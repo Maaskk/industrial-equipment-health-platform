@@ -47,7 +47,7 @@ If the prediction log has at least four rows, the script compares the first half
 
 ## Operational Expectations
 
-- `/health` must return `model_source: local_pickle` for the real demo.
+- `/health` must return `model_source: mlflow_registry` for the Komodo demo.
 - `ALLOW_FALLBACK_MODEL=true` is only allowed in unit tests.
 - Each `/predict` call must append one JSONL line.
 - A failed model load should stop the API instead of serving fake predictions.
