@@ -1,4 +1,7 @@
 x-app: &app
+  build:
+    context: ..
+    dockerfile: Dockerfile
   image: ${APP_IMAGE:-industrial-equipment-health-platform:latest}
   pull_policy: never
   environment: &app-env
