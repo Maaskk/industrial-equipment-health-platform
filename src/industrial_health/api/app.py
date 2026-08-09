@@ -4,7 +4,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-from industrial_health.api.contracts import build_prediction_response
+from industrial_health.api.contracts import build_prediction_response, build_service_info
 from industrial_health.api.data_service import (
     CycleNotFoundError,
     DatasetUnavailableError,
@@ -66,8 +66,6 @@ def create_app(
     """
 
     from fastapi import FastAPI, HTTPException, Query
-    from fastapi.responses import HTMLResponse
-    from fastapi.staticfiles import StaticFiles
     from pydantic import BaseModel, Field
 
     class PredictionRequest(BaseModel):
@@ -122,10 +120,6 @@ def create_app(
         model_version = str(model_metadata.get("model_version") or metadata.version)
     model_source = "mlflow_registry" if registry_uri else ("local_pickle" if resolved_model_path.exists() else "fallback")
     monitor = PredictionMonitor(resolved_monitor_path)
-    frontend_root = Path(__file__).resolve().parent
-    template_path = frontend_root / "templates" / "dashboard.html"
-    static_path = frontend_root / "static"
-    app.mount("/static", StaticFiles(directory=static_path), name="static")
     data_service = EngineDataService(
         db_path=resolve_duckdb_path(),
         model=model,
@@ -143,9 +137,9 @@ def create_app(
             return HTTPException(status_code=422, detail=str(exc))
         return HTTPException(status_code=503, detail=str(exc))
 
-    @app.get("/", response_class=HTMLResponse, include_in_schema=False)
-    def dashboard() -> str:
-        return template_path.read_text(encoding="utf-8")
+    @app.get("/", include_in_schema=False)
+    def service_info() -> dict[str, str]:
+        return build_service_info()
 
     @app.get("/demo-payload")
     def demo_payload() -> dict[str, object]:

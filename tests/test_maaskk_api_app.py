@@ -14,13 +14,12 @@ def route_for(path):
 
 
 class MaaskkApiAppTests(unittest.TestCase):
-    def test_dashboard_is_served_from_fastapi(self):
+    def test_api_root_returns_service_metadata(self):
         body = route_for("/").endpoint()
 
-        self.assertIn("AeroReliability Lab", body)
-        self.assertIn("Engine degradation replay", body)
-        self.assertIn("Turbofan degradation twin", body)
-        self.assertIn("Interactive engine observatory", body)
+        self.assertEqual(body["service"], "industrial-equipment-health-api")
+        self.assertEqual(body["status"], "ready")
+        self.assertEqual(body["documentation"], "/docs")
 
     def test_demo_payload_matches_model_contract(self):
         body = route_for("/demo-payload").endpoint()
