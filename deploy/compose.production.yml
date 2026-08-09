@@ -31,7 +31,7 @@ services:
     command: ["sh", "-c", "mkdir -p /app/mlflow/artifacts && exec mlflow server --backend-store-uri sqlite:////app/mlflow/mlflow.db --default-artifact-root /app/mlflow/artifacts --host 0.0.0.0 --port 5000 --workers 1"]
     environment:
       <<: *app-env
-      MLFLOW_SERVER_ALLOWED_HOSTS: mlflow:*,localhost:*,127.0.0.1:*,0.0.0.0:*
+      MLFLOW_SERVER_ALLOWED_HOSTS: mlflow:*,localhost:*,127.0.0.1:*,0.0.0.0:*,exp.s3.fsbm.ma:*
     ports:
       - "${HOST_BIND_IP:-127.0.0.1}:${MLFLOW_HOST_PORT:-5000}:5000"
     healthcheck:
