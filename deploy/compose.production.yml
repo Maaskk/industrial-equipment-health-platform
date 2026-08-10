@@ -134,6 +134,8 @@ services:
   ops-gateway:
     image: nginx:1.27-alpine
     restart: unless-stopped
+    labels:
+      auth.reset: "2026-08-10-final"
     depends_on:
       mlflow:
         condition: service_healthy
