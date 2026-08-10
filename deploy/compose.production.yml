@@ -135,7 +135,7 @@ services:
     image: nginx:1.27-alpine
     restart: unless-stopped
     labels:
-      auth.reset: "2026-08-10-final"
+      auth.reset: "2026-08-10-oashad"
     depends_on:
       mlflow:
         condition: service_healthy
