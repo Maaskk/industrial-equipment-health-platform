@@ -26,7 +26,7 @@ The platform predicts equipment degradation risk and remaining useful life from 
     <td align="center"><a href="https://github.com/Mouhcine005"><img src="https://github.com/Mouhcine005.png?size=96" width="72" alt="Mouhcine"><br><sub><b>Mouhcine</b></sub></a></td>
     <td align="center"><a href="https://github.com/HajarEnnajdy"><img src="https://github.com/HajarEnnajdy.png?size=96" width="72" alt="Hajar"><br><sub><b>Hajar</b></sub></a></td>
     <td align="center"><a href="https://github.com/Iliassouchida"><img src="https://github.com/Iliassouchida.png?size=96" width="72" alt="Ilyass"><br><sub><b>Ilyass</b></sub></a></td>
-    <td align="center"><a href="https://github.com/Adonis-I"><img src="https://github.com/Adonis-I.png?size=96" width="72" alt="Akram"><br><sub><b>Akram</b></sub></a></td>
+    <td align="center"><a href="https://github.com/ayamoujoud"><img src="https://github.com/ayamoujoud.png?size=96" width="72" alt="Aya Moujoud"><br><sub><b>Aya</b></sub></a></td>
   </tr>
 </table>
 
@@ -150,7 +150,7 @@ Komodo, Docker Compose, GitHub Actions, and monitoring
 
 ## Team Branches
 
-Each member works in their own branch and opens pull requests into `main`.
+The table records the active project team and each member's main area of work.
 
 | Member | GitHub | Branch | Main ownership |
 |---|---|---|---|
@@ -160,9 +160,12 @@ Each member works in their own branch and opens pull requests into `main`.
 | Mouhcine | `Mouhcine005` | `feature/Mouhcine005` | model training, evaluation, feature engineering |
 | Hajar | `HajarEnnajdy` | `feature/HajarEnnajdy` | API schemas, demo client, user-facing demo flow |
 | Ilyass | `Iliassouchida` | `feature/ilyass-analytics-eda` | EDA, business analysis, KPIs, visual evidence |
-| Akram | `Adonis-I` | `feature/Adonis-I` | Agile artifacts, sprint reports, final release and presentation |
+| Aya Moujoud | `ayamoujoud` | Active team record | final QA, monitoring review, demo checklist, presentation closing |
 
 Detailed task files are in [`team/`](team/).
+
+Akram (`Adonis-I`) supported an earlier project phase through Jira and Agile
+tracking. He is not part of the active presentation team.
 
 ## Minimum Deliverables
 
