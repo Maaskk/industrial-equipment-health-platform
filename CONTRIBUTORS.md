@@ -12,9 +12,14 @@ individual work behind that release.
 | [Mouhcine](https://github.com/Mouhcine005) | Model training, evaluation, and feature engineering |
 | [Hajar](https://github.com/HajarEnnajdy) | API schemas, demo client, and user-facing demo flow |
 | [Ilyass](https://github.com/Iliassouchida) | EDA, business analysis, KPIs, and visual evidence |
-| [Akram](https://github.com/Adonis-I) | Agile artifacts, sprint reports, release, and presentation |
+| [Aya Moujoud](https://github.com/ayamoujoud) | Final QA, monitoring review, demo checklist, and presentation closing |
 
 Detailed responsibility records are available in [`team/`](team/).
+
+## Previous project support
+
+Akram (`Adonis-I`) contributed Jira and Agile tracking during an earlier phase.
+He is not part of the active presentation team.
 
 ## Preserved Git history
 
@@ -32,6 +37,8 @@ instead of recreating commits or rewriting authors.
 
 The preserved Hajar and Akram branch tips contain commits authored under
 Ossama's Git identity, so they cannot legitimately create automatic contributor
-attribution for Hajar or Akram. Their completed roles remain documented above.
+attribution for Hajar or Akram. Aya's active role is documented in the project
+files, but the repository does not claim commits that GitHub cannot attribute to
+her account.
 GitHub may take time to rebuild its contributor list after authentic history
 becomes reachable from the default branch.
