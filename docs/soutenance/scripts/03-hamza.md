@@ -19,8 +19,9 @@ erreur et pour reproduire un résultat. »
 « J'ai également travaillé sur les contrôles dans GitHub Actions. La CI vérifie
 les données et dbt, les tests Python, la compilation et les règles statiques.
 Elle exécute ensuite l'entraînement et le registre, construit l'image Docker,
-puis effectue un smoke test sur la santé et la prédiction. La dernière exécution
-de référence, le run 35261575924, est passée avec succès. »
+puis effectue un smoke test sur la santé et la prédiction. Pendant la
+démonstration, j'ouvre la dernière exécution verte et j'annonce l'identifiant et
+le commit visibles à l'écran. »
 
 « Le rôle de ma partie dans le pipeline est donc de créer une barrière avant le
 modèle et avant le déploiement. Un code qui fonctionne mais utilise des données

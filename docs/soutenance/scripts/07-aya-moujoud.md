@@ -18,11 +18,11 @@ La requête FD004_204 renvoie 101,87 cycles, un risque faible et une latence de
 
 « Dans Komodo, je vérifie la Stack
 `industrial_equipment_health_platform`, les conteneurs, les logs et l'état des
-services. La révision de référence du dépôt est 3ef8c10. Juste avant la démo,
-la checklist impose de confirmer que l'image active correspond à cette révision
-et de refaire les captures. Nous ne créons pas de ressources artificielles pour
-remplir les pages Komodo. Nous montrons uniquement les ressources réellement
-utilisées par la Stack. »
+services. Juste avant la démo, la checklist impose de relever le commit réellement
+déployé, de confirmer que l'image active correspond à ce commit et de refaire les
+captures. Nous ne créons pas de ressources artificielles pour remplir les pages
+Komodo. Nous montrons uniquement les ressources réellement utilisées par la
+Stack. »
 
 « Le monitoring actuel suit la santé du service, la latence, les journaux de
 prédiction et un indicateur de drift basé sur les RUL. Ce signal reste limité :

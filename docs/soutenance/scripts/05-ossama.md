@@ -24,11 +24,11 @@ automatisation planifiée et une promotion conditionnelle, mais pas une boucle d
 réentraînement déclenchée par la dérive. »
 
 « Pour l'industrialisation, GitHub Actions valide le commit, construit l'image
-et réalise le smoke test. La révision de référence est 3ef8c10 et le run CI
-35261575924 est passé. Docker Compose décrit FastAPI, MLflow et Dagster. Komodo
-gère cette Stack sur le serveur partagé. La production de démonstration utilise
-FD001 pour rester légère, alors que l'évaluation scientifique couvre FD001 à
-FD004 et 707 moteurs. »
+et réalise le smoke test. Juste avant la soutenance, nous vérifions la révision
+déployée et le dernier run vert au lieu de réciter une ancienne valeur. Docker
+Compose décrit FastAPI, MLflow et Dagster. Komodo gère cette Stack sur le serveur
+partagé. La production de démonstration utilise FD001 pour rester légère, alors
+que l'évaluation scientifique couvre FD001 à FD004 et 707 moteurs. »
 
 « Hajar va maintenant présenter le contrat FastAPI utilisé par l'application et
 le parcours de démonstration. »
