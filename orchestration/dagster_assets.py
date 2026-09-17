@@ -153,6 +153,7 @@ final_mlops_job = define_asset_job(
 daily_schedule = ScheduleDefinition(
     job=final_mlops_job,
     cron_schedule="0 6 * * *",
+    execution_timezone="Africa/Casablanca",
 )
 
 defs = Definitions(

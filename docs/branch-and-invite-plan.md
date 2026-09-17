@@ -6,19 +6,21 @@
 - Repository: `industrial-equipment-health-platform`
 - Visibility: public
 
-## Collaborators to Invite Now
+## Active collaborators
 
 - `mohamed-kar1`
 - `HamzaElhaddaji`
 - `Mouhcine005`
 - `HajarEnnajdy`
 - `Adonis-I`
+- `Iliassouchida`
+- `ayamoujoud`
 
 `Maaskk` is the repository owner, so no invite is required for Ossama.
 
-## Collaborators to Invite Later
-
-- Ilyass: GitHub username pending
+GitHub access was verified on 17 September 2026. `ayamoujoud` has accepted
+collaborator access with the `write` role. There is no pending invitation for
+her account.
 
 ## Branches to Create
 
@@ -28,8 +30,9 @@ feature/mohamed-kar1
 feature/HamzaElhaddaji
 feature/Mouhcine005
 feature/HajarEnnajdy
-feature/ilyass
+feature/ilyass-analytics-eda
 feature/Adonis-I
+docs/aya-active-team
 ```
 
 ## Pull Request Rules

@@ -25,6 +25,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
 from industrial_health.mlops.serving_model import FeatureSchemaRULModel
+from industrial_health.mlops.promotion import decide_and_apply_promotion
 
 try:
     from scripts.download_data import EXPECTED_FILES, download_cmapss
@@ -442,7 +443,20 @@ def train(args: argparse.Namespace) -> dict[str, object]:
 
     registered_version = str(model_info.registered_model_version)
     model_alias = os.getenv("MODEL_ALIAS", "champion")
-    MlflowClient().set_registered_model_alias(model_name, model_alias, registered_version)
+    promotion_path = report_dir / "promotion_decision.json"
+    client = MlflowClient()
+    promotion = decide_and_apply_promotion(
+        client=client,
+        model_name=model_name,
+        alias=model_alias,
+        candidate_version=registered_version,
+        candidate_run_id=run_id,
+        candidate_mae=float(final_metrics["mae"]),
+        candidate_rmse=float(final_metrics["rmse"]),
+    )
+    write_json(promotion_path, promotion.to_dict())
+    client.log_artifact(run_id, str(promotion_path), artifact_path="promotion")
+    champion_version = registered_version if promotion.promoted else promotion.previous_champion_version
 
     metrics = {
         "generated_at_utc": generated_at,
@@ -472,6 +486,9 @@ def train(args: argparse.Namespace) -> dict[str, object]:
             "registered_model_version": registered_version,
             "registered_model_alias": model_alias,
             "model_uri": f"models:/{model_name}@{model_alias}",
+            "candidate_promoted": promotion.promoted,
+            "champion_version_after_decision": champion_version,
+            "promotion_decision": promotion_path.as_posix(),
         },
         "artifacts": {
             "model": model_path.as_posix(),
@@ -509,7 +526,11 @@ def train(args: argparse.Namespace) -> dict[str, object]:
     print(f"trained final model: {model_path}")
     print(f"standard final MAE: {model_results['final_gradient_boosting']['standard_final_cycle_metrics']['mae']:.4f}")
     print(f"mlflow run id: {run_id}")
-    print(f"registered model: {model_name} version {registered_version} alias {model_alias}")
+    print(f"registered candidate: {model_name} version {registered_version}")
+    print(
+        f"promotion decision: promoted={promotion.promoted}, "
+        f"champion={champion_version}, reason={promotion.reason}"
+    )
     return metrics
 
 

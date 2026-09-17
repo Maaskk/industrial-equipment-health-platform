@@ -26,11 +26,25 @@ The platform predicts equipment degradation risk and remaining useful life from 
     <td align="center"><a href="https://github.com/Mouhcine005"><img src="https://github.com/Mouhcine005.png?size=96" width="72" alt="Mouhcine"><br><sub><b>Mouhcine</b></sub></a></td>
     <td align="center"><a href="https://github.com/HajarEnnajdy"><img src="https://github.com/HajarEnnajdy.png?size=96" width="72" alt="Hajar"><br><sub><b>Hajar</b></sub></a></td>
     <td align="center"><a href="https://github.com/Iliassouchida"><img src="https://github.com/Iliassouchida.png?size=96" width="72" alt="Ilyass"><br><sub><b>Ilyass</b></sub></a></td>
-    <td align="center"><a href="https://github.com/Adonis-I"><img src="https://github.com/Adonis-I.png?size=96" width="72" alt="Akram"><br><sub><b>Akram</b></sub></a></td>
+    <td align="center"><a href="https://github.com/ayamoujoud"><img src="https://github.com/ayamoujoud.png?size=96" width="72" alt="Aya Moujoud"><br><sub><b>Aya</b></sub></a></td>
   </tr>
 </table>
 
 Roles and contribution areas are documented in [CONTRIBUTORS.md](CONTRIBUTORS.md).
+
+Aya Moujoud (`@ayamoujoud`) is an active member of the seven-person defense
+team and has GitHub collaborator access with the `write` role. Her final scope
+is QA, monitoring review, Komodo validation, demo evidence, and project limits.
+Her responsibility record is available in
+[`team/08-aya-moujoud-qa-monitoring.md`](team/08-aya-moujoud-qa-monitoring.md),
+and her oral script is in
+[`docs/soutenance/scripts/07-aya-moujoud.md`](docs/soutenance/scripts/07-aya-moujoud.md).
+
+The Dagster daemon runs `final_mlops_job` every day at 06:00 in the
+`Africa/Casablanca` timezone. This is scheduled retraining. Drift monitoring does
+not trigger training. Each run registers a candidate, compares its final-cycle
+MAE and RMSE with the current MLflow champion, and updates the alias only when
+both metrics are no worse.
 
 ## Final Local Run
 
@@ -142,7 +156,7 @@ Docker, GitHub Actions, monitoring, and final demo
 
 ## Team Branches
 
-Each member works in their own branch and opens pull requests into `main`.
+The table records the active project team and each member's main area of work.
 
 | Member | GitHub | Branch | Main ownership |
 |---|---|---|---|
@@ -152,9 +166,12 @@ Each member works in their own branch and opens pull requests into `main`.
 | Mouhcine | `Mouhcine005` | `feature/Mouhcine005` | model training, evaluation, feature engineering |
 | Hajar | `HajarEnnajdy` | `feature/HajarEnnajdy` | API schemas, demo client, user-facing demo flow |
 | Ilyass | `Iliassouchida` | `feature/ilyass-analytics-eda` | EDA, business analysis, KPIs, visual evidence |
-| Akram | `Adonis-I` | `feature/Adonis-I` | Agile artifacts, sprint reports, final release and presentation |
+| Aya Moujoud | `ayamoujoud` | `docs/aya-active-team` | final QA, monitoring review, Komodo validation, demo checklist, limits |
 
 Detailed task files are in [`team/`](team/).
+
+Akram (`Adonis-I`) supported an earlier project phase through Jira and Agile
+tracking. He is not part of the active presentation team.
 
 ## Minimum Deliverables
 
@@ -179,6 +196,7 @@ Detailed task files are in [`team/`](team/).
 
 ## Final Documentation
 
+- Complete French defense guide: [`output/pdf/Guide_complet_soutenance_MLOps_DataOps.pdf`](output/pdf/Guide_complet_soutenance_MLOps_DataOps.pdf)
 - API demo guide: [`docs/api.md`](docs/api.md)
 - Monitoring: [`docs/monitoring.md`](docs/monitoring.md)
 - Agile backlog and sprints: [`agile/`](agile/)
