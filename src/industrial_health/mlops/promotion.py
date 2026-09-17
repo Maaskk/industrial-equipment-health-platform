@@ -88,7 +88,11 @@ def decide_and_apply_promotion(
     try:
         champion = client.get_model_version_by_alias(model_name, alias)
     except MlflowException as exc:
-        if exc.error_code != "RESOURCE_DOES_NOT_EXIST":
+        alias_missing = (
+            exc.error_code in {"RESOURCE_DOES_NOT_EXIST", "INVALID_PARAMETER_VALUE"}
+            and f"alias {alias} not found" in str(exc).lower()
+        )
+        if not alias_missing:
             raise
         champion = None
 

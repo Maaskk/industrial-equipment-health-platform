@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 from mlflow.exceptions import MlflowException
-from mlflow.protos.databricks_pb2 import RESOURCE_DOES_NOT_EXIST
+from mlflow.protos.databricks_pb2 import INVALID_PARAMETER_VALUE
 
 from industrial_health.mlops.promotion import decide_and_apply_promotion, evaluate_candidate
 
@@ -19,7 +19,10 @@ class FakeClient:
 
     def get_model_version_by_alias(self, model_name, alias):
         if self.champion is None:
-            raise MlflowException("alias not found", error_code=RESOURCE_DOES_NOT_EXIST)
+            raise MlflowException(
+                f"Registered model alias {alias} not found.",
+                error_code=INVALID_PARAMETER_VALUE,
+            )
         return self.champion
 
     def get_run(self, run_id):
