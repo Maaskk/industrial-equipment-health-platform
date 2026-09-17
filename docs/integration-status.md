@@ -1,6 +1,6 @@
 # Integration Status
 
-This file records the integration state for the final project branch.
+This file records the current production integration state.
 
 ## Merged Work
 
@@ -11,15 +11,24 @@ This file records the integration state for the final project branch.
 | ML modeling | `feature/Mouhcine005` | baseline/improved model scripts, schema, metrics, evaluation report | merged |
 | MLOps/API | `owner/Maaskk` | FastAPI service, Docker files, MLflow docs, monitoring, tests, CI workflow | merged |
 | Analytics | `feature/ilyass-analytics-eda` | EDA notebook | merged |
+| API and demo | `feature/HajarEnnajdy` plus final integration | API contract, example payload, dashboard flow, contract tests | integrated |
+| Final QA | `docs/aya-active-team` | monitoring review, Komodo verification, demo checklist, presentation review | active |
 
-## Rebuilt By Integration
+## Final consolidation
 
-- Hajar's `feature/HajarEnnajdy` branch had no visible commits beyond the scaffold, so the final integration branch must implement the API/demo documentation and sample payloads.
-- Akram's `feature/Adonis-I` branch had no visible commits beyond `main`, so the final integration branch must implement backlog, sprint artifacts, release checklist, and final presentation/report coordination.
+The production release consolidated compatible work from the feature branches and
+added the integration needed to run the whole platform. Current responsibilities
+and demonstration ownership are documented in `team/` and
+`docs/soutenance/CONTRIBUTIONS_FINAL.md`.
 
-## Current Integration Risks
+Akram supported the earlier Jira and Agile phase. He is not part of the active
+presentation team, and his historical support remains documented.
 
-- `main` still does not contain the integrated project until `integration/final` is merged.
-- The current model branch is a good baseline, but the final project still needs a reproducible training script, executed notebook proof, and MLflow registration evidence.
-- The existing API fallback model must be disabled by default before final demo.
-- Docker Compose must become the single-command local runtime required by the professor.
+## Current operating facts
+
+- `main` contains the integrated production project.
+- Docker Compose starts MLflow, the training job, FastAPI, Dagster webserver, and Dagster daemon.
+- Dagster schedules the full job every day at 06:00 in `Africa/Casablanca`.
+- Training registers a candidate and promotes it only when both MAE and RMSE meet the champion rule.
+- The Komodo production configuration uses `TRAIN_SUBSETS=FD001`.
+- The offline evaluation artifact covers FD001 to FD004 and 707 test engines. These are separate scopes.

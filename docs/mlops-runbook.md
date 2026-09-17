@@ -43,7 +43,16 @@ The API resolves models using:
 models:/industrial-equipment-health-model@champion
 ```
 
-Training creates a registered model version and updates the `champion` alias. The Docker API loads that alias directly from MLflow.
+Training creates a registered candidate. The promotion gate updates the
+`champion` alias only when candidate MAE and RMSE are no worse than the current
+champion. The Docker API loads that alias directly from MLflow.
+
+## Scheduled retraining
+
+Dagster runs `final_mlops_job` every day at 06:00 in the
+`Africa/Casablanca` timezone. The job performs ingestion, dbt transformations,
+quality tests, feature validation, training, registration, promotion evaluation,
+and then drift reporting. Drift does not trigger retraining.
 
 ## Monitoring
 

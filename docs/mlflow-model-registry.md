@@ -24,10 +24,16 @@ The API resolves the registered model URI as:
 models:/industrial-equipment-health-model@champion
 ```
 
-Every successful training run creates a real registered model version and moves the alias:
+Every successful training run creates a registered candidate. The promotion gate
+resolves the current champion and compares `standard_final_mae` and
+`standard_final_rmse`. The candidate receives the alias only when both metrics
+are no worse. The first candidate becomes champion when no alias exists. Missing
+champion metrics block the promotion.
 
-```bash
-MlflowClient().set_registered_model_alias(model_name, "champion", version)
+The decision is stored in MLflow tags and in:
+
+```text
+reports/model_metrics/promotion_decision.json
 ```
 
 ## Artifact Contract From ML Team
@@ -52,3 +58,4 @@ The final presentation should show:
 - model artifact
 - registered model version
 - selected model version used by the API
+- promotion decision and previous champion

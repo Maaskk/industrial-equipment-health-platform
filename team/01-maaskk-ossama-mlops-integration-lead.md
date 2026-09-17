@@ -4,17 +4,12 @@ GitHub: `Maaskk`
 
 Branch: `owner/Maaskk`
 
-Difficulty: **hardest role**
-
-## Why this role fits
-
-Public GitHub history shows strong signals in Python ML, RAG/vector search, GNN optimization, Kafka/Flink pipelines, ML apps, and TypeScript applications. This is the best match for the hardest role because it requires connecting data engineering, ML, API serving, DevOps, and monitoring into one working system.
-
 ## Mission
 
 Make the project work end to end like a real industrial MLOps product.
 
-You own the integration layer: MLflow, model registry, FastAPI deployment architecture, Docker, CI/CD, monitoring, and final demo reliability.
+You own the integration layer: MLflow, model registry, Docker, CI/CD, and the
+connection between the data, model, API, and Komodo deployment.
 
 ## Main Deliverables
 
@@ -26,13 +21,9 @@ You own the integration layer: MLflow, model registry, FastAPI deployment archit
 - Docker and Docker Compose architecture.
 - GitHub Actions CI/CD template.
 - End-to-end integration script or demo command. See `docs/demo-checklist.md`.
-- Monitoring design for:
-  - service availability
-  - response time
-  - prediction logs
-  - simple input drift
-  - model metric tracking
-- Final demo checklist.
+- Candidate evaluation and safe champion promotion.
+- Scheduled training configuration with Dagster.
+- Monitoring architecture and handoff to Aya for final evidence review.
 
 ## Inputs Needed From Others
 
@@ -50,7 +41,7 @@ You own the integration layer: MLflow, model registry, FastAPI deployment archit
 - The API returns healthy status and valid predictions.
 - Docker build passes.
 - GitHub Actions runs lint and tests.
-- Monitoring records at least latency and prediction logs.
+- Monitoring records latency and prediction logs for Aya's final review.
 - The final demo works from a fresh clone.
 
 ## First Tasks

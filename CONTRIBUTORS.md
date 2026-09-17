@@ -1,8 +1,9 @@
 # Contributors
 
-This project was built as a team effort. The final production integration was
-consolidated through one release branch, and this record preserves the
-individual work behind that release.
+This project combines work produced on feature branches with review, validation,
+documentation, and release work completed during the final integration. The
+responsibility files in [`team/`](team/) describe the current scope of each
+member without changing Git authorship.
 
 | Contributor | Project area |
 |---|---|
@@ -21,7 +22,7 @@ Detailed responsibility records are available in [`team/`](team/).
 Akram (`Adonis-I`) contributed Jira and Agile tracking during an earlier phase.
 He is not part of the active presentation team.
 
-## Preserved Git history
+## Git history and responsibilities
 
 The original feature-branch commits for Mohamed, Hamza, Mouhcine and Ilyass are
 reachable from the default branch without changing the final production tree.
@@ -35,10 +36,7 @@ instead of recreating commits or rewriting authors.
 | Mouhcine | `feature/Mouhcine005` | Original commits are linked to `@Mouhcine005` |
 | Ilyass | `feature/ilyass-analytics-eda` | Original commits are preserved, but GitHub does not currently link their author email to `@Iliassouchida` |
 
-The preserved Hajar and Akram branch tips contain commits authored under
-Ossama's Git identity, so they cannot legitimately create automatic contributor
-attribution for Hajar or Akram. Aya's active role is documented in the project
-files, but the repository does not claim commits that GitHub cannot attribute to
-her account.
-GitHub may take time to rebuild its contributor list after authentic history
-becomes reachable from the default branch.
+The Git graph records code commits. Reviews, rehearsals, validation work, and
+presentation responsibilities are recorded in the team files and the final
+contribution matrix. The repository does not rewrite authors or create false
+commits to alter GitHub attribution.

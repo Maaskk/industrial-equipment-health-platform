@@ -32,6 +32,12 @@ The platform predicts equipment degradation risk and remaining useful life from 
 
 Roles and contribution areas are documented in [CONTRIBUTORS.md](CONTRIBUTORS.md).
 
+The Dagster daemon runs `final_mlops_job` every day at 06:00 in the
+`Africa/Casablanca` timezone. This is scheduled retraining. Drift monitoring does
+not trigger training. Each run registers a candidate, compares its final-cycle
+MAE and RMSE with the current MLflow champion, and updates the alias only when
+both metrics are no worse.
+
 ## Final Local Run
 
 The professor allowed local Docker/Docker Compose delivery. From a fresh clone, the intended command is:
