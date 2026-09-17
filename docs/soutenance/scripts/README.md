@@ -32,5 +32,5 @@ Durée totale visée : 34 minutes 30. La limite officielle pour sept personnes e
 7. [Aya Moujoud](07-aya-moujoud.md)
 8. [Démonstration de l'équipe](08-demonstration-equipe.md)
 
-Akram n'est pas présentateur. Son appui antérieur sur Agile et Jira reste cité
-dans la dernière diapositive.
+Akram reste membre et contributeur du projet pour Jira, l'organisation Agile et
+la coordination de livraison. Il ne présente pas parce qu'il est indisponible.

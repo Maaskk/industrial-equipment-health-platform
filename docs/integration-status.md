@@ -13,6 +13,7 @@ This file records the current production integration state.
 | Analytics | `feature/ilyass-analytics-eda` | EDA notebook | merged |
 | API and demo | `feature/HajarEnnajdy` plus final integration | API contract, example payload, dashboard flow, contract tests | integrated |
 | Final QA | `docs/aya-active-team` | monitoring review, Komodo verification, demo checklist, presentation review | active |
+| Agile and release | `feature/Adonis-I` | Jira planning, backlog, sprint tracking, release coordination | contributed |
 
 ## Final consolidation
 
@@ -21,8 +22,9 @@ added the integration needed to run the whole platform. Current responsibilities
 and demonstration ownership are documented in `team/` and
 `docs/soutenance/CONTRIBUTIONS_FINAL.md`.
 
-Akram supported the earlier Jira and Agile phase. He is not part of the active
-presentation team, and his historical support remains documented.
+Akram remains a project member and contributor for Jira, Agile planning, sprint
+tracking, and release coordination. He is unavailable for the oral defense and
+therefore has no speaking part.
 
 ## Current operating facts
 
