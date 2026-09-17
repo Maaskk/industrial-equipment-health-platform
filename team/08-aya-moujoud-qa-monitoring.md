@@ -18,6 +18,7 @@ review has a clear owner.
 - monitoring values verified immediately before the presentation
 - Komodo Stack and container status captured for the fallback demo
 - review of the limitations and final conclusion
+- individual defense script in `docs/soutenance/scripts/07-aya-moujoud.md`
 
 ## Tasks
 

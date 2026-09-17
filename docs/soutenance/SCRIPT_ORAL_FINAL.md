@@ -1,9 +1,17 @@
 # Script oral final
 
-Durée cible : 28 minutes de présentation, puis 5 minutes de démonstration.  
-Chaque membre reste sous 5 minutes.
+Ce conducteur applique les consignes officielles : cinq minutes maximum par
+étudiant, contribution personnelle explicite, rôle dans le pipeline global et
+décisions techniques expliquées. Pour sept présentateurs, la durée maximale est
+de 35 minutes.
 
-## Ilyass, diapositives 1 à 3, environ 4 minutes
+Durée cible : 29 minutes 30 de présentation et 5 minutes de démonstration, soit
+34 minutes 30 au total. Chaque membre garde au moins 30 secondes de marge.
+
+Les textes complets, prêts à répéter, sont répartis dans
+[`docs/soutenance/scripts/`](scripts/README.md).
+
+## Ilyass, diapositives 1 à 3, 4 minutes 15
 
 ### Introduction
 
@@ -22,7 +30,9 @@ trois réglages et 21 mesures de capteurs. J'ai conservé l'ordre temporel pour
 « Cette analyse définit les données utiles. Mohamed montre maintenant comment
 nous les chargeons et les transformons. »
 
-## Mohamed, diapositives 4 et 5, environ 4 minutes
+Script complet : [`scripts/01-ilyass.md`](scripts/01-ilyass.md).
+
+## Mohamed, diapositives 4 et 5, 4 minutes
 
 « J'ai construit la partie DataOps. dlt charge les fichiers NASA, DuckDB stocke
 les tables, puis dbt prépare les données de travail. Dagster impose l'ordre des
@@ -32,7 +42,9 @@ reproduire dans Docker et suffisant pour ce volume. »
 « Une sortie dbt devient l'entrée de la modélisation. Avant cela, Hamza vérifie
 que les contrats et les tests sont respectés. »
 
-## Hamza, diapositives 6 et 7, environ 4 minutes
+Script complet : [`scripts/02-mohamed.md`](scripts/02-mohamed.md).
+
+## Hamza, diapositives 6 et 7, 4 minutes
 
 « Ma partie porte sur la qualité. Les contrats décrivent les colonnes, les types
 et les limites attendues. Les tests dbt vérifient les données avant
@@ -42,7 +54,9 @@ qualité arrête le pipeline avant l'enregistrement d'un modèle. »
 « Une fois les données validées, Mouhcine peut comparer les modèles sur une base
 reproductible. »
 
-## Mouhcine, diapositives 8 et 9, environ 4 minutes
+Script complet : [`scripts/03-hamza.md`](scripts/03-hamza.md).
+
+## Mouhcine, diapositives 8 et 9, 4 minutes 15
 
 « J'ai travaillé sur les variables et la comparaison des modèles. Le modèle
 final utilise 89 variables, notamment des moyennes, écarts types et pentes sur
@@ -53,7 +67,9 @@ dernier cycle des 707 moteurs de test. »
 « Le modèle retenu devient ensuite un candidat dans MLflow. Ossama explique la
 gestion de cette version. »
 
-## Ossama, diapositives 10 à 12, environ 4 minutes
+Script complet : [`scripts/04-mouhcine.md`](scripts/04-mouhcine.md).
+
+## Ossama, diapositives 10 à 12, 4 minutes 30
 
 « Ma partie relie l'entraînement au déploiement. MLflow enregistre les paramètres,
 les métriques et le modèle. Chaque entraînement crée un candidat. Le code compare
@@ -67,7 +83,9 @@ alors que l'évaluation hors ligne utilise les quatre sous ensembles. »
 
 « Hajar présente maintenant le contrat utilisé par l'application. »
 
-## Hajar, diapositives 13 et 14, environ 4 minutes
+Script complet : [`scripts/05-ossama.md`](scripts/05-ossama.md).
+
+## Hajar, diapositives 13 et 14, 4 minutes
 
 « J'ai préparé le contrat FastAPI et le parcours de démonstration. La route de
 santé confirme que le modèle est chargé. La prédiction reçoit un identifiant de
@@ -79,7 +97,9 @@ la version. »
 moteur et lancer une prédiction. Aya vérifie ensuite que tout est prêt en
 production. »
 
-## Aya Moujoud, diapositives 15 à 17, environ 4 minutes
+Script complet : [`scripts/06-hajar.md`](scripts/06-hajar.md).
+
+## Aya Moujoud, diapositives 15 à 17, 4 minutes 30
 
 « J'ai rejoint la phase finale pour prendre en charge la validation. Je vérifie
 les conteneurs, les codes HTTP, la version du champion, la latence et la source
@@ -91,7 +111,12 @@ ne remplace pas une surveillance industrielle complète. C MAPSS contient des
 données simulées et les seuils de risque viennent de règles sur la RUL. Ces
 limites sont importantes pour interpréter le résultat. »
 
-## Démonstration et questions, diapositive 18, environ 5 minutes
+Script complet : [`scripts/07-aya-moujoud.md`](scripts/07-aya-moujoud.md).
+
+## Démonstration et questions, diapositive 18, 5 minutes
 
 Suivre l'ordre de `DEMO_CHECKLIST_FINAL.md`. Une seule personne pilote l'écran.
 Chaque membre commente uniquement sa partie.
+
+Le conducteur détaillé est disponible dans
+[`scripts/08-demonstration-equipe.md`](scripts/08-demonstration-equipe.md).

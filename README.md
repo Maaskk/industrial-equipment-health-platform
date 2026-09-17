@@ -32,6 +32,14 @@ The platform predicts equipment degradation risk and remaining useful life from 
 
 Roles and contribution areas are documented in [CONTRIBUTORS.md](CONTRIBUTORS.md).
 
+Aya Moujoud (`@ayamoujoud`) is an active member of the seven-person defense
+team and has GitHub collaborator access with the `write` role. Her final scope
+is QA, monitoring review, Komodo validation, demo evidence, and project limits.
+Her responsibility record is available in
+[`team/08-aya-moujoud-qa-monitoring.md`](team/08-aya-moujoud-qa-monitoring.md),
+and her oral script is in
+[`docs/soutenance/scripts/07-aya-moujoud.md`](docs/soutenance/scripts/07-aya-moujoud.md).
+
 The Dagster daemon runs `final_mlops_job` every day at 06:00 in the
 `Africa/Casablanca` timezone. This is scheduled retraining. Drift monitoring does
 not trigger training. Each run registers a candidate, compares its final-cycle
@@ -158,7 +166,7 @@ The table records the active project team and each member's main area of work.
 | Mouhcine | `Mouhcine005` | `feature/Mouhcine005` | model training, evaluation, feature engineering |
 | Hajar | `HajarEnnajdy` | `feature/HajarEnnajdy` | API schemas, demo client, user-facing demo flow |
 | Ilyass | `Iliassouchida` | `feature/ilyass-analytics-eda` | EDA, business analysis, KPIs, visual evidence |
-| Aya Moujoud | `ayamoujoud` | Active team record | final QA, monitoring review, demo checklist, presentation closing |
+| Aya Moujoud | `ayamoujoud` | `docs/aya-active-team` | final QA, monitoring review, Komodo validation, demo checklist, limits |
 
 Detailed task files are in [`team/`](team/).
 

@@ -13,9 +13,11 @@ member without changing Git authorship.
 | [Mouhcine](https://github.com/Mouhcine005) | Model training, evaluation, and feature engineering |
 | [Hajar](https://github.com/HajarEnnajdy) | API schemas, demo client, and user-facing demo flow |
 | [Ilyass](https://github.com/Iliassouchida) | EDA, business analysis, KPIs, and visual evidence |
-| [Aya Moujoud](https://github.com/ayamoujoud) | Final QA, monitoring review, demo checklist, and presentation closing |
+| [Aya Moujoud](https://github.com/ayamoujoud) | Final QA, monitoring review, Komodo validation, demo checklist, and project limits |
 
 Detailed responsibility records are available in [`team/`](team/).
+The seven individual defense scripts are available in
+[`docs/soutenance/scripts/`](docs/soutenance/scripts/).
 
 ## Previous project support
 
