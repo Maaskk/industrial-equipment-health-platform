@@ -1,4 +1,4 @@
-# Akram - Agile, Release, and Final Presentation
+# Akram - Agile, Release, and Project Coordination
 
 GitHub: `Adonis-I`
 
@@ -6,7 +6,7 @@ Branch: `feature/Adonis-I`
 
 ## Mission
 
-Keep the project organized and make the final delivery look professional.
+Keep the project organized and coordinate the Agile and release work.
 
 ## Main Deliverables
 
@@ -16,7 +16,7 @@ Keep the project organized and make the final delivery look professional.
 - Sprint review notes.
 - Sprint retrospective notes.
 - Release checklist.
-- Final presentation structure.
+- Final presentation structure and schedule.
 - Final report coordination.
 
 ## Acceptance Criteria
@@ -24,11 +24,12 @@ Keep the project organized and make the final delivery look professional.
 - Agile artifacts satisfy the course requirements.
 - Every task has an owner and sprint.
 - Sprint notes are specific, not generic.
-- Final presentation fits:
-  - 15 minutes presentation
-  - 10 minutes demo
-  - 5 minutes questions
+- The final presentation plan follows the official timing and assigns speaking
+  parts to the seven available presenters.
 - The release checklist confirms all mandatory deliverables.
+
+Akram remains a project member and contributor. He is unavailable for the oral
+defense and therefore has no speaking part.
 
 ## First Tasks
 

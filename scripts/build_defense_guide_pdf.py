@@ -587,7 +587,7 @@ curl -f -H 'Content-Type: application/json' --data @/tmp/demo-payload.json http:
 
     story.extend(section_break("11. Aya dans GitHub", "Pourquoi elle n'apparaît pas encore dans les deux zones montrées sur les captures."))
     story.append(heading("Le bloc Team du README", 2))
-    story.append(p("La branche de la pull request 12 contient déjà Aya dans le tableau Team et retire Akram de la liste des présentateurs actifs. La capture montre encore la branche principale. Tant que la pull request n'est pas approuvée et fusionnée, GitHub affiche l'ancien README sur la page principale."))
+    story.append(p("La branche de la pull request 12 contient Aya dans le tableau Team tout en conservant Akram comme membre et contributeur du projet. Le plan oral comporte sept présentateurs parce qu'Akram est indisponible. Tant que la pull request n'est pas approuvée et fusionnée, GitHub affiche l'ancien README sur la page principale."))
     story.append(heading("Le graphe Contributors", 2))
     story.append(p("Le graphe Contributors n'est pas la liste des collaborateurs. Il est calculé à partir des commits attribués sur la branche par défaut. Aya possède déjà l'accès write, mais cet accès ne crée pas un commit et ne modifie donc pas ce graphe."))
     story.append(callout("Procédure correcte", "Aya doit effectuer un vrai changement depuis son propre compte, avec une adresse vérifiée, puis ouvrir une pull request. Après revue et fusion dans main, GitHub pourra lui attribuer ce commit et afficher son profil dans Contributors. Il ne faut pas fabriquer un commit en son nom."))
