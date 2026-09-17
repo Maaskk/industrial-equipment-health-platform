@@ -14,15 +14,17 @@ member without changing Git authorship.
 | [Hajar](https://github.com/HajarEnnajdy) | API schemas, demo client, and user-facing demo flow |
 | [Ilyass](https://github.com/Iliassouchida) | EDA, business analysis, KPIs, and visual evidence |
 | [Aya Moujoud](https://github.com/ayamoujoud) | Final QA, monitoring review, Komodo validation, demo checklist, and project limits |
+| [Akram](https://github.com/Adonis-I) | Jira, Agile planning, sprint tracking, and release coordination |
 
 Detailed responsibility records are available in [`team/`](team/).
 The seven individual defense scripts are available in
 [`docs/soutenance/scripts/`](docs/soutenance/scripts/).
 
-## Previous project support
+## Presentation participation
 
-Akram (`Adonis-I`) contributed Jira and Agile tracking during an earlier phase.
-He is not part of the active presentation team.
+Akram (`Adonis-I`) remains a project contributor. He will not participate in the
+oral defense because he is unavailable. This does not remove his contributions
+or his membership in the project team.
 
 ## Git history and responsibilities
 

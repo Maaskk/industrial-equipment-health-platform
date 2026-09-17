@@ -13,8 +13,9 @@ l'historique Git.
 | Ossama | MLflow, promotion du champion, Docker et intégration Komodo | `src/industrial_health/mlops/`, `deploy/compose.production.yml`, `komodo/resources.toml` | montrer le registre, le planning quotidien et l'architecture de déploiement | promouvoir un candidat seulement si MAE et RMSE ne se dégradent pas |
 | Hajar | Contrat FastAPI et parcours de démonstration | `src/industrial_health/api/`, `demo/predict_sample.json`, `docs/api.md` | exécuter la santé, une prédiction et le parcours du tableau de bord | séparer les 88 variables de requête des 89 variables internes |
 | Aya Moujoud | Validation finale, monitoring, Komodo et limites | `docs/validation/aya-final-production-validation.md`, `docs/soutenance/DEMO_CHECKLIST_FINAL.md`, `docs/monitoring.md` | vérifier les services, la latence, la source du drift et les preuves de secours | ne présenter comme mesure de production qu'une valeur datée et traçable |
+| Akram | Jira, organisation Agile et coordination de livraison | `agile/`, `docs/release-checklist.md`, `team/07-akram-agile-release.md` | pas de prise de parole car il est indisponible | maintenir un backlog, des sprints et une checklist de livraison cohérents |
 
-## Support antérieur
+## Participation à la soutenance
 
-Akram a participé à la phase Jira et Agile. Il ne fait pas partie des sept
-présentateurs actifs.
+Akram reste membre et contributeur du projet. Il ne fait pas partie des sept
+présentateurs uniquement parce qu'il est indisponible pour la soutenance.

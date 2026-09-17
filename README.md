@@ -27,6 +27,7 @@ The platform predicts equipment degradation risk and remaining useful life from 
     <td align="center"><a href="https://github.com/HajarEnnajdy"><img src="https://github.com/HajarEnnajdy.png?size=96" width="72" alt="Hajar"><br><sub><b>Hajar</b></sub></a></td>
     <td align="center"><a href="https://github.com/Iliassouchida"><img src="https://github.com/Iliassouchida.png?size=96" width="72" alt="Ilyass"><br><sub><b>Ilyass</b></sub></a></td>
     <td align="center"><a href="https://github.com/ayamoujoud"><img src="https://github.com/ayamoujoud.png?size=96" width="72" alt="Aya Moujoud"><br><sub><b>Aya</b></sub></a></td>
+    <td align="center"><a href="https://github.com/Adonis-I"><img src="https://github.com/Adonis-I.png?size=96" width="72" alt="Akram"><br><sub><b>Akram</b></sub></a></td>
   </tr>
 </table>
 
@@ -167,11 +168,14 @@ The table records the active project team and each member's main area of work.
 | Hajar | `HajarEnnajdy` | `feature/HajarEnnajdy` | API schemas, demo client, user-facing demo flow |
 | Ilyass | `Iliassouchida` | `feature/ilyass-analytics-eda` | EDA, business analysis, KPIs, visual evidence |
 | Aya Moujoud | `ayamoujoud` | `docs/aya-active-team` | final QA, monitoring review, Komodo validation, demo checklist, limits |
+| Akram | `Adonis-I` | `feature/Adonis-I` | Jira, Agile planning, sprint tracking, release coordination |
 
 Detailed task files are in [`team/`](team/).
 
-Akram (`Adonis-I`) supported an earlier project phase through Jira and Agile
-tracking. He is not part of the active presentation team.
+Akram (`Adonis-I`) remains a project member and contributor. He worked on Jira,
+Agile planning, sprint tracking, and release coordination. He will not take part
+in the oral defense because he is unavailable, but his work remains part of the
+project and its documentation.
 
 ## Minimum Deliverables
 
