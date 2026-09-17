@@ -56,5 +56,5 @@ Je confirme avoir exécuté les contrôles ci-dessus et relu les limites présen
 pendant la soutenance.
 
 Nom : Aya Moujoud  
-Date : À compléter  
-Commit de validation : À compléter
+Date : 15/09/2026  
+Commit de validation : 15/09/2026  
