@@ -196,6 +196,7 @@ tracking. He is not part of the active presentation team.
 
 ## Final Documentation
 
+- Complete French defense guide: [`output/pdf/Guide_complet_soutenance_MLOps_DataOps.pdf`](output/pdf/Guide_complet_soutenance_MLOps_DataOps.pdf)
 - API demo guide: [`docs/api.md`](docs/api.md)
 - Monitoring: [`docs/monitoring.md`](docs/monitoring.md)
 - Agile backlog and sprints: [`agile/`](agile/)

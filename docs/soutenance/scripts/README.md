@@ -5,6 +5,10 @@ du professeur. Chaque personne doit expliquer sa contribution, sa place dans le
 pipeline et au moins une décision technique. Le texte est prévu pour être dit
 naturellement, sans lecture mot à mot.
 
+Le document unique avec les sept scripts, l'explication du projet, le parcours
+de démonstration et les réponses aux questions est disponible dans
+[`Guide_complet_soutenance_MLOps_DataOps.pdf`](../../../output/pdf/Guide_complet_soutenance_MLOps_DataOps.pdf).
+
 | Ordre | Présentateur | Diapositives | Durée cible | Partie |
 |---|---|---:|---:|---|
 | 1 | Ilyass | 1 à 3 | 4 min 15 | contexte, données, EDA et KPIs |
