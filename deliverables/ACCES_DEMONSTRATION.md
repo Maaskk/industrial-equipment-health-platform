@@ -13,18 +13,11 @@
 
 ## Identifiants MLflow et Dagster
 
-MLflow et Dagster sont protégés par la même passerelle d'authentification. Pour éviter d'exposer le serveur universitaire, les identifiants ne sont pas publiés dans ce dépôt public.
-
-Ils doivent être :
-
-1. remis directement au professeur par un canal privé ; ou
-2. saisis par un membre de l'équipe pendant la démonstration.
-
-Le gestionnaire de mots de passe ou la note privée de l'équipe doit contenir :
+MLflow et Dagster utilisent le même compte public de démonstration :
 
 ```text
-Utilisateur : [à remettre séparément]
-Mot de passe : [à remettre séparément]
+Utilisateur : professor
+Mot de passe : ProfDemo-3401-3403!2026
 ```
 
 ## Vérification rapide
@@ -36,4 +29,3 @@ Avant la démonstration :
 3. ouvrir MLflow et vérifier l'alias `champion` ;
 4. ouvrir Dagster et vérifier le job et le planning quotidien ;
 5. ouvrir Komodo avec le compte étudiant autorisé et vérifier que la Stack est `RUNNING`.
-
