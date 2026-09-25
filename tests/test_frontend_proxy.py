@@ -51,6 +51,10 @@ class FrontendProxyTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("AeroReliability Lab", response.text)
         self.assertIn("/static/js/app.js", response.text)
+        self.assertIn("Project scope", response.text)
+        self.assertIn("Evaluation policy", response.text)
+        self.assertNotIn("Honest scope", response.text)
+        self.assertNotIn("Operations vs evaluation", response.text)
 
     def test_default_upstream_is_the_live_komodo_api(self):
         module = load_proxy_module()
